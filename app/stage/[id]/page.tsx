@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { getStage, badgeNames } from "../../data";
+import { getStage, badgeNames, stageOrder } from "../../data";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, useParams, useRouter, useSearchParams } from "next/navigation";
@@ -275,13 +275,22 @@ function StagePageContent() {
     fetchProgress();
   }, [id, stage]);
 
-  if (!stage) {
+  if (!stage || !stageOrder.includes(id)) {
     notFound();
     return null;
   }
 
   if (isLoading) {
     return <div className="min-h-screen bg-[#1a1a1a]" />;
+  }
+
+  if (id !== "house" && dayIndex > 7 && !isReviewing) {
+    return <main className="min-h-screen bg-bg-main text-text-main flex flex-col items-center justify-center p-6 gap-5 text-center">
+      <h1 className="text-2xl font-bold">{stage.title} — etapa do piloto concluída</h1>
+      <p className="max-w-md">Você concluiu os sete dias desta estação previstos no piloto. Continue Intimidade com Deus até o dia 21 para conquistar a primeira insígnia.</p>
+      <button onClick={() => router.push("/stage/house")} className="bg-accent text-bg-main px-6 py-3 rounded-xl font-bold">Continuar Intimidade</button>
+      <button onClick={() => router.push("/")} className="underline">Voltar ao mapa</button>
+    </main>;
   }
 
   const currentDayData = stage.days[dayIndex - 1];

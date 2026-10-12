@@ -1915,7 +1915,8 @@ export const stages: Stage[] = [
   }
 ];
 
-export const stageOrder = stages.map((s) => s.id);
+// Piloto: somente Intimidade, Família e Compaixão, sem excluir as outras estações.
+export const stageOrder = ["house", "street", "office"];
 
 export const getStage = (id: string) => stages.find((s) => s.id === id);
 
