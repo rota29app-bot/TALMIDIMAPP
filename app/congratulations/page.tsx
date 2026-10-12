@@ -77,8 +77,12 @@ function CongratulationsContent() {
       const supabase = (await import("../../utils/supabase/client")).createClient();
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (session?.user && stageId) {
-        // Tenta inserir, se já existir falha silenciosamente (por causa do UNIQUE do BD)
+      if (session?.user && stageId === "house") {
+        // Impede conceder a primeira insígnia por simples acesso à URL.
+        const { data: progress } = await supabase.from("user_daily_progress")
+          .select("day_index").eq("user_id", session.user.id)
+          .eq("stage_id", "house").maybeSingle();
+        if ((progress?.day_index || 0) < 21) return;
         await supabase.from("user_badges").insert({
           user_id: session.user.id,
           badge_id: stageId

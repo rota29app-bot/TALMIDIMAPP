@@ -77,12 +77,12 @@ export default function HojePage() {
         dayMap[row.stage_id] = row.day_index;
       });
 
-      const lastStageId = stageOrder[stageOrder.length - 1];
-      const done = (dayMap[lastStageId] || 0) >= 21;
+      const done = (dayMap.house || 0) >= 21;
       setJourneyDone(done);
 
-      if (!done && resolvedIndex < stageOrder.length) {
-        const stageId = stageOrder[resolvedIndex];
+      if (!done) {
+        const unlocked = stageOrder[Math.min(Math.max(0, resolvedIndex), stageOrder.length - 1)];
+        const stageId = unlocked !== "house" && (dayMap[unlocked] || 1) > 7 ? "house" : unlocked;
         setActiveStageId(stageId);
         setActiveDay(dayMap[stageId] || 1);
       }
@@ -154,7 +154,7 @@ export default function HojePage() {
         {journeyDone ? (
           <div className="bg-white border border-[#f0e4cd] rounded-2xl p-6 text-center shadow-sm">
             <p className="text-[15px] text-[#3b5238] font-medium">
-              Você concluiu as sete estações. Sua jornada continua além do aplicativo — a formação de um discípulo nunca termina de verdade.
+              Você concluiu os 21 dias de Intimidade do piloto. O acompanhamento de experiência e resultados segue até 13 de novembro.
             </p>
           </div>
         ) : stage && dayData ? (
@@ -185,9 +185,7 @@ export default function HojePage() {
                 />
               </div>
               <p className="text-[12px] text-[#8b6131] font-bold mt-2">
-                {21 - activeDay <= 0
-                  ? `Insígnia "${badgeNames[activeStageId as string] || "desta estação"}" liberada!`
-                  : `Faltam ${21 - activeDay} dia${21 - activeDay === 1 ? "" : "s"} para a insígnia "${badgeNames[activeStageId as string] || "desta estação"}"`}
+                {`Primeira insígnia "${badgeNames.house}" ao concluir os 21 dias de Intimidade.`}
               </p>
             </div>
           </button>

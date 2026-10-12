@@ -197,7 +197,7 @@ export default function DashboardPage() {
 
         {/* INSÍGNIA TALMID — não é o prêmio de uma estação, é o selo final
             de quem completou as 7 e perseverou nas práticas até o fim. */}
-        {(() => {
+        {stageOrder.length === 7 && (() => {
           const isTalmidUnlocked = totalUnlocked === totalAvailable;
           return (
             <div

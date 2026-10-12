@@ -45,10 +45,9 @@ function MarcoContent() {
         </h1>
 
         <p className="text-[15px] text-[#3b5238] leading-relaxed text-center mb-10">
-          Você não termina {stage.title} agora — continue praticando o que aprendeu
-          nos próximos dias. Mas o conteúdo{nextStage ? ` de ${nextStage.title}` : " da próxima estação"} já
-          está liberado, e você pode começar quando quiser. A insígnia desta
-          estação chega no dia 21, quando a prática estiver enraizada.
+          {nextStage
+            ? `Você completou os sete dias de ${stage.title}. ${nextStage.title} foi liberada e começa amanhã. Continue Intimidade até o dia 21.`
+            : "As três estações do piloto foram apresentadas. Continue a prática de Intimidade até o dia 21 para receber a primeira insígnia."}
         </p>
 
         <button

@@ -97,11 +97,13 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
   const allInvitesKnown = churches.every(i => records.some(r => r.kind === "igreja" && r.igreja_id === i.igreja_id));
   const totalInvited = allInvitesKnown ? churches.reduce((sum, i) => sum + Number(records.find(r => r.kind === "igreja" && r.igreja_id === i.igreja_id)?.payload.convidados || 0), 0) : null;
   return <section className="px-6 mt-8 space-y-6">
-    <div><h2 className="text-xl font-serif font-bold">Piloto de 30 dias</h2>
-      <p className="text-sm text-text-muted mt-2">15/10 a 13/11. Entrada: 15–21/10 · Adoção: 22–28/10 · Experiência: 29/10–07/11 · Avaliação final: 08–13/11.</p>
+    <div><h2 className="text-xl font-serif font-bold">Painel do piloto</h2>
+      <p className="text-sm text-text-muted mt-2">Jornada de 21 dias: 15/10 a 04/11, Intimidade, Família e Compaixão e Graça. Primeira insígnia ao final dos 21 dias.</p>
+      <p className="text-sm text-text-muted mt-2">Acompanhamento de 30 dias, até 13/11. Entrada: 15–21/10 · Adoção: 22–28/10 · Experiência: 29/10–07/11 · Avaliação final: 08–13/11.</p>
+      <nav className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm" aria-label="Navegação do piloto"><a href="#pilot-results" className="rounded-lg border border-accent/30 p-3">1. Resultados</a><a href="#pilot-form" className="rounded-lg border border-accent/30 p-3">2. Registros</a><a href="#pilot-history" className="rounded-lg border border-accent/30 p-3">3. Histórico</a></nav>
       <p className="text-sm mt-2">Cadastre as igrejas e vincule os participantes na Visão Geral. Registre fatos confirmados; campos preenchidos não comprovam atividades externas.</p>
     </div>
-    <div className="bg-bg-card border border-accent/20 rounded-2xl p-4 space-y-3">
+    <div id="pilot-results" className="bg-bg-card border border-accent/20 rounded-2xl p-4 space-y-3 scroll-mt-24">
       <h3 className="font-bold">Adesão e continuidade</h3>
       <div className="grid grid-cols-2 gap-3"><label>Início<input aria-label="Início do período" type="date" value={start} onChange={e => { setLoading(true); setStart(e.target.value); }} className={input} /></label>
       <label>Fim<input aria-label="Fim do período" type="date" value={end} min={start} onChange={e => { setLoading(true); setEnd(e.target.value); }} className={input} /></label></div>
@@ -123,7 +125,7 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
         ...churches.map(i => { const m = metrics.find(m => m.igreja_id === i.igreja_id); const r = records.find(r => r.kind === "igreja" && r.igreja_id === i.igreja_id); return [i.igreja_id, i.nome, r?.payload.convidados ?? "Não informado", m?.cadastrados ?? 0, m?.iniciaram ?? 0, m?.retornaram ?? 0, start, end]; }),
       ], "rota29-adesao.csv")}>Baixar controle de adesão</button>
     </div>
-    <div className="bg-bg-card border border-accent/20 rounded-2xl p-4 space-y-4">
+    <div id="pilot-form" className="bg-bg-card border border-accent/20 rounded-2xl p-4 space-y-4 scroll-mt-24">
       <h3 className="font-bold">Registrar evidência</h3>
       <label className="block">Igreja<select aria-label="Igreja do registro" className={input} value={church} onChange={e => setChurch(e.target.value)}><option value="">Selecione</option>{churches.map(i => <option key={i.igreja_id} value={i.igreja_id}>{i.nome}</option>)}</select></label>
       <label className="block">Instrumento<select aria-label="Instrumento" className={input} value={kind} onChange={e => { setKind(e.target.value); setMessage(""); }}>{Object.entries(instruments).map(([key, item]) => <option key={key} value={key}>{item.title}</option>)}</select></label>
@@ -138,7 +140,7 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
       <p className="text-xs text-text-muted">Interesse declarado não é venda. Proposta, contrato e pagamento são estágios separados. Este formulário registra evidências; não cobra valores nem firma contratos.</p>
     </div>
     {error && <p role="alert" className="text-red-500">{error}</p>}{message && <p role="status">{message}</p>}
-    <div className="space-y-3"><h3 className="font-bold">Histórico dos registros</h3>
+    <div id="pilot-history" className="space-y-3 scroll-mt-24"><h3 className="font-bold">Histórico dos registros</h3>
       <p className="text-xs">{records.length} registros no histórico. Para corrigir uma ocorrência, crie outra indicando o código anterior.</p>
       <button className="underline" disabled={loading || !!error} onClick={() => download([["id", "igreja_id", "instrumento", "data", "dados"], ...records.map(r => [r.id, r.igreja_id, r.kind, r.created_at, JSON.stringify(r.payload)])], "rota29-registros.csv")}>Baixar registros</button>
       {records.length === 0 && !loading && !error && <p>Nenhuma evidência registrada.</p>}

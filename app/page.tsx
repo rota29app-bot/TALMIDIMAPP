@@ -10,8 +10,8 @@ import BottomNav from "./components/BottomNav";
 const stageNumbers: Record<string, string> = {
   house: "01",
   street: "02",
-  clinic: "03",
-  office: "04",
+  clinic: "04",
+  office: "03",
   construction: "05",
   rooftop: "06",
   city: "07",
@@ -121,14 +121,14 @@ export default function Home() {
 
       let resolvedIndex = 0;
       if (data) {
-        resolvedIndex = data.current_stage_index;
+        resolvedIndex = Math.min(Math.max(0, data.current_stage_index), stageOrder.length - 1);
         setCurrentStageIndex(resolvedIndex);
         localStorage.setItem("talmidim-progress", resolvedIndex.toString());
       } else {
         // Se não existir, tenta ler o local
         const saved = localStorage.getItem("talmidim-progress");
         if (saved !== null) {
-          resolvedIndex = Number(saved);
+          resolvedIndex = Math.min(Math.max(0, Number(saved) || 0), stageOrder.length - 1);
           setCurrentStageIndex(resolvedIndex);
         }
       }
@@ -220,21 +220,16 @@ export default function Home() {
 
   const totalStages = stageOrder.length;
   const currentStageId = stageOrder[currentStageIndex];
-  // Jornada só termina de verdade quando a ÚLTIMA estação chega no dia 21
-  // (conquista) — não mais quando currentStageIndex "passa do fim", porque
-  // agora ele avança no dia 7 (marco), não no dia 21.
-  const lastStageId = stageOrder[totalStages - 1];
-  const journeyComplete = (dayByStage[lastStageId] || 0) >= 21;
+  // A primeira insígnia é entregue após 21 dias de Intimidade.
+  const jornadaIntimidade = Math.min(21, Math.max(1, dayByStage.house || 1));
+  const journeyComplete = jornadaIntimidade >= 21;
   const fromTitle =
     currentStageIndex === 0 ? "Início" : getStage(stageOrder[currentStageIndex - 1])?.title || "Início";
-  const toTitle = journeyComplete ? "Jornada concluída" : getStage(currentStageId)?.title || "Próxima estação";
+  const toTitle = journeyComplete ? "Piloto concluído" : getStage(currentStageId)?.title || "Próxima estação";
   const ticketNumber = `EST ${String(Math.min(currentStageIndex + 1, totalStages)).padStart(2, "0")}`;
   const stageLabel = `${String(Math.min(currentStageIndex + 1, totalStages)).padStart(2, "0")}/${String(totalStages).padStart(2, "0")}`;
   const dayLabel = journeyComplete ? "21/21" : `${currentDay}/21`;
-  // Progresso geral soma os dias de TODAS as estações já iniciadas (não só
-  // a atual), porque com prática contínua várias avançam ao mesmo tempo.
-  const totalDaysDone = stageOrder.reduce((sum, id) => sum + Math.min(dayByStage[id] || 0, 21), 0);
-  const totalProgressPct = Math.round((totalDaysDone / (totalStages * 21)) * 100);
+  const totalProgressPct = Math.round(jornadaIntimidade / 21 * 100);
   const badgeReady = journeyComplete;
 
   return (
@@ -407,9 +402,7 @@ export default function Home() {
               className="text-center uppercase tracking-widest"
               style={{ fontFamily: "monospace", fontSize: 9, color: "#8b6131cc", margin: "10px 0 0" }}
             >
-              {21 - currentDay <= 0
-                ? `Insígnia "${badgeNames[currentStageId] || "desta estação"}" liberada!`
-                : `Faltam ${21 - currentDay} dia${21 - currentDay === 1 ? "" : "s"} para a insígnia "${badgeNames[currentStageId] || "desta estação"}"`}
+              {`Primeira insígnia "${badgeNames.house}" · ${jornadaIntimidade}/21 dias de Intimidade`}
             </p>
           )}
 
