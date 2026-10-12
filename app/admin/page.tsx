@@ -361,7 +361,7 @@ export default function PainelAdmin() {
                 value={novoNomeIgreja}
                 onChange={(e) => setNovoNomeIgreja(e.target.value)}
                 placeholder="Nome da igreja"
-                className="flex-1 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
+                className="flex-1 min-w-0 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
               />
               <button
                 onClick={handleCriarIgreja}
@@ -386,7 +386,7 @@ export default function PainelAdmin() {
                 value={emailBusca}
                 onChange={(e) => setEmailBusca(e.target.value)}
                 placeholder="E-mail já cadastrado no app"
-                className="flex-1 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
+                className="flex-1 min-w-0 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
               />
               <button
                 aria-label="Buscar usuário por e-mail"
@@ -465,7 +465,7 @@ export default function PainelAdmin() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por nome ou e-mail"
-              className="flex-1 bg-bg-card border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
+              className="flex-1 min-w-0 bg-bg-card border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
             />
             <button
               onClick={() => setMostrarFiltros((v) => !v)}

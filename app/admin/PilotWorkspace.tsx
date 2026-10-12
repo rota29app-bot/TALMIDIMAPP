@@ -46,6 +46,15 @@ export function download(rows: unknown[][], name: string) {
 function ratio(n: number, d: number | null) {
   return d === null || d === 0 ? "Não calculável" : `${n} de ${d} (${Math.round(n / d * 100)}%)`;
 }
+async function readRecords(client: ReturnType<typeof createClient>) {
+  const rows: RecordItem[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await client.from("pilot_records").select("id,igreja_id,kind,payload,created_at").order("created_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 499);
+    if (error) return { data: rows, error };
+    rows.push(...(data || []));
+    if ((data || []).length < 500) return { data: rows, error: null };
+  }
+}
 
 export default function PilotWorkspace({ churches }: { churches: Church[] }) {
   const client = createClient();
@@ -63,7 +72,7 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
   const refresh = useCallback(async () => {
     const request = ++requestNumber.current;
     const [r, m] = await Promise.all([
-      client.from("pilot_records").select("id,igreja_id,kind,payload,created_at").order("created_at", { ascending: false }).limit(1000),
+      readRecords(client),
       client.rpc("admin_pilot_metrics", { p_start: start, p_end: end }),
     ]);
     if (request !== requestNumber.current) return;
@@ -84,6 +93,9 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
     form.reset(); setMessage("Registro salvo. Atualizações são novos registros, preservando o histórico."); await refresh();
   }
   const input = "w-full min-w-0 bg-bg-main border border-accent/30 rounded-xl px-3 py-3 text-sm";
+  const totals = metrics.reduce((sum, m) => ({ registered: sum.registered + Number(m.cadastrados), started: sum.started + Number(m.iniciaram), returned: sum.returned + Number(m.retornaram) }), { registered: 0, started: 0, returned: 0 });
+  const allInvitesKnown = churches.every(i => records.some(r => r.kind === "igreja" && r.igreja_id === i.igreja_id));
+  const totalInvited = allInvitesKnown ? churches.reduce((sum, i) => sum + Number(records.find(r => r.kind === "igreja" && r.igreja_id === i.igreja_id)?.payload.convidados || 0), 0) : null;
   return <section className="px-6 mt-8 space-y-6">
     <div><h2 className="text-xl font-serif font-bold">Piloto de 30 dias</h2>
       <p className="text-sm text-text-muted mt-2">15/10 a 13/11. Entrada: 15–21/10 · Adoção: 22–28/10 · Experiência: 29/10–07/11 · Avaliação final: 08–13/11.</p>
@@ -94,6 +106,7 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
       <div className="grid grid-cols-2 gap-3"><label>Início<input aria-label="Início do período" type="date" value={start} onChange={e => { setLoading(true); setStart(e.target.value); }} className={input} /></label>
       <label>Fim<input aria-label="Fim do período" type="date" value={end} min={start} onChange={e => { setLoading(true); setEnd(e.target.value); }} className={input} /></label></div>
       <p className="text-xs text-text-muted">Cadastrados: membros vinculados atualmente, excluindo pastores e administradores. Início: uso de uma tela da jornada em um dia do período. Retorno: uso em pelo menos dois dias distintos, no horário de Brasília. A coleta começa nesta versão; não reconstrói o passado. Convites vêm da ficha inicial mais recente. Ausência de ficha significa dado pendente.</p>
+      {!loading && !error && <div className="border border-accent/30 rounded-xl p-3"><h4 className="font-bold">Consolidado geral</h4><p className="text-sm">Cadastros / convites: {ratio(totals.registered, totalInvited)}</p><p className="text-sm">Iniciaram: {totals.started} · Retorno / início: {ratio(totals.returned, totals.started)}</p></div>}
       {loading ? <p role="status">Carregando indicadores…</p> : !error && churches.map(i => {
         const metric = metrics.find(m => m.igreja_id === i.igreja_id);
         const record = records.find(r => r.igreja_id === i.igreja_id && r.kind === "igreja");
@@ -126,7 +139,7 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
     </div>
     {error && <p role="alert" className="text-red-500">{error}</p>}{message && <p role="status">{message}</p>}
     <div className="space-y-3"><h3 className="font-bold">Histórico dos registros</h3>
-      <p className="text-xs">Exibidos os últimos {records.length} registros, até 1.000. Para corrigir uma ocorrência, crie outra indicando o código anterior.</p>
+      <p className="text-xs">{records.length} registros no histórico. Para corrigir uma ocorrência, crie outra indicando o código anterior.</p>
       <button className="underline" disabled={loading || !!error} onClick={() => download([["id", "igreja_id", "instrumento", "data", "dados"], ...records.map(r => [r.id, r.igreja_id, r.kind, r.created_at, JSON.stringify(r.payload)])], "rota29-registros.csv")}>Baixar registros</button>
       {records.length === 0 && !loading && !error && <p>Nenhuma evidência registrada.</p>}
       {records.filter(r => !church || r.igreja_id === church).map(r => <article key={r.id} className="bg-bg-card border border-accent/20 rounded-xl p-4 break-words"><p className="font-bold">{instruments[r.kind]?.title} · {churches.find(i => i.igreja_id === r.igreja_id)?.nome}</p><p className="text-xs">{new Date(r.created_at).toLocaleString("pt-BR")} · Código: {r.id}</p><dl className="text-sm mt-2">{Object.entries(r.payload).map(([key, value]) => <div key={key}><dt className="font-semibold">{instruments[r.kind]?.fields.find(f => f.key === key)?.label || key}</dt><dd>{value || "Não informado"}</dd></div>)}</dl></article>)}
