@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../utils/supabase/client";
+import { stationNumber } from "../../utils/progress";
+import PilotWorkspace, { download } from "./PilotWorkspace";
 import {
   ArrowLeft,
   ShieldCheck,
@@ -89,10 +91,9 @@ export default function PainelAdmin() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [aba, setAba] = useState<"geral" | "analytics">("geral");
+  const [aba, setAba] = useState<"geral" | "analytics" | "piloto">("geral");
 
   const [igrejas, setIgrejas] = useState<Igreja[]>([]);
   const [membros, setMembros] = useState<Membro[]>([]);
@@ -107,6 +108,7 @@ export default function PainelAdmin() {
   const [usuarioEncontrado, setUsuarioEncontrado] = useState<UsuarioEncontrado | null | "nao_encontrado">(null);
   const [igrejaSelecionada, setIgrejaSelecionada] = useState("");
   const [promovendo, setPromovendo] = useState(false);
+  const [tipoVinculo, setTipoVinculo] = useState("membro");
   const [mensagem, setMensagem] = useState<string | null>(null);
 
   // Filtros do Analytics
@@ -119,6 +121,7 @@ export default function PainelAdmin() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
   const carregarTudo = useCallback(async () => {
+    setErro(null);
     const [overview, allMembers] = await Promise.all([
       supabase.rpc("admin_get_overview"),
       supabase.rpc("admin_get_all_members"),
@@ -135,13 +138,14 @@ export default function PainelAdmin() {
     }
     setIgrejas(overview.data || []);
 
-    if (!allMembers.error) {
+    if (allMembers.error) {
+      setErro("Não foi possível carregar os participantes. Atualize a página para tentar novamente.");
+    } else {
       setMembros(allMembers.data || []);
     }
   }, [supabase, router]);
 
   useEffect(() => {
-    setMounted(true);
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -191,7 +195,7 @@ export default function PainelAdmin() {
     if (!usuarioEncontrado || usuarioEncontrado === "nao_encontrado" || !igrejaSelecionada) return;
     setPromovendo(true);
     setMensagem(null);
-    const { error } = await supabase.rpc("admin_set_pastor", {
+    const { error } = await supabase.rpc(tipoVinculo === "pastor" ? "admin_set_pastor" : "admin_assign_member", {
       p_user_id: usuarioEncontrado.user_id,
       p_igreja_id: igrejaSelecionada,
     });
@@ -200,7 +204,7 @@ export default function PainelAdmin() {
       setMensagem("Erro ao promover: " + error.message);
       return;
     }
-    setMensagem(`${usuarioEncontrado.nome} agora é pastor(a) dessa igreja.`);
+    setMensagem(`${usuarioEncontrado.nome} vinculado(a) à igreja como ${tipoVinculo === "pastor" ? "pastor(a)" : "participante"}.`);
     setUsuarioEncontrado(null);
     setEmailBusca("");
     setIgrejaSelecionada("");
@@ -272,7 +276,7 @@ export default function PainelAdmin() {
     filtroFaixa !== "todas" ||
     busca.trim() !== "";
 
-  if (!mounted || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-bg-main flex justify-center items-center">
         <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin"></div>
@@ -286,7 +290,7 @@ export default function PainelAdmin() {
   return (
     <div className="min-h-screen bg-bg-main text-text-main font-sans pb-24">
       <div className="bg-bg-card pt-6 pb-4 px-6 sticky top-0 z-20 shadow-sm border-b border-accent/20 flex items-center justify-between">
-        <button onClick={() => router.push("/dashboard")} className="text-accent p-2 -ml-2">
+        <button aria-label="Voltar ao aplicativo" onClick={() => router.push("/dashboard")} className="text-accent p-2 -ml-2">
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-[18px] font-serif font-bold text-text-main">Painel Master</h1>
@@ -313,6 +317,7 @@ export default function PainelAdmin() {
         >
           Analytics
         </button>
+        <button onClick={() => setAba("piloto")} className={`flex-1 py-3 rounded-xl font-bold text-[13px] ${aba === "piloto" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"}`}>Piloto</button>
       </div>
 
       {erro && <p className="text-red-500 text-[13px] text-center mt-4 px-6">{erro}</p>}
@@ -323,7 +328,7 @@ export default function PainelAdmin() {
           <div>
             <h2 className="text-[20px] font-bold font-serif text-text-main mb-1">Visão Geral do Sistema</h2>
             <p className="text-text-muted text-[13px] mb-4">
-              {igrejas.length} {igrejas.length === 1 ? "igreja licenciada" : "igrejas licenciadas"} · {totalMembros} membros · {totalPastores} pastores
+              {igrejas.length} {igrejas.length === 1 ? "igreja cadastrada" : "igrejas cadastradas"} · {totalMembros} membros · {totalPastores} pastores
             </p>
           </div>
 
@@ -372,7 +377,7 @@ export default function PainelAdmin() {
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <UserPlus className="text-accent" size={18} />
-              <h3 className="text-[14px] font-bold uppercase tracking-wider">Vincular Pastor a uma Igreja</h3>
+              <h3 className="text-[14px] font-bold uppercase tracking-wider">Vincular pessoa a uma igreja</h3>
             </div>
 
             <div className="flex gap-2 mb-3">
@@ -384,6 +389,7 @@ export default function PainelAdmin() {
                 className="flex-1 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
               />
               <button
+                aria-label="Buscar usuário por e-mail"
                 onClick={handleBuscarUsuario}
                 disabled={buscando || !emailBusca.trim()}
                 className="bg-bg-main border border-accent/30 text-text-main px-4 rounded-xl disabled:opacity-40"
@@ -404,6 +410,7 @@ export default function PainelAdmin() {
                 </p>
 
                 <select
+                  aria-label="Igreja do vínculo"
                   value={igrejaSelecionada}
                   onChange={(e) => setIgrejaSelecionada(e.target.value)}
                   className="w-full bg-bg-card border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main mb-3"
@@ -416,12 +423,18 @@ export default function PainelAdmin() {
                   ))}
                 </select>
 
+                <label className="block text-sm mb-3">Tipo de acesso
+                  <select aria-label="Tipo de vínculo" value={tipoVinculo} onChange={e => setTipoVinculo(e.target.value)} className="w-full bg-bg-card border border-accent/20 rounded-xl px-4 py-3">
+                    <option value="membro">Participante</option><option value="pastor">Pastor(a)</option>
+                  </select>
+                </label>
+                <p className="text-xs mb-3">Confira a igreja antes de salvar. Um pastor terá acesso ao acompanhamento dos participantes dessa igreja.</p>
                 <button
                   onClick={handlePromover}
                   disabled={promovendo || !igrejaSelecionada}
                   className="w-full bg-accent text-bg-main py-3 rounded-xl font-bold disabled:opacity-40"
                 >
-                  {promovendo ? "Promovendo..." : "Tornar Pastor(a) dessa Igreja"}
+                  {promovendo ? "Salvando..." : "Salvar vínculo"}
                 </button>
               </div>
             )}
@@ -431,13 +444,18 @@ export default function PainelAdmin() {
         </div>
       )}
 
-      {aba === "analytics" && (
+      {aba === "piloto" && <PilotWorkspace churches={igrejas} />}
+      {aba === "analytics" && !erro && (
         <div className="px-6 mt-8 space-y-6">
           <div>
             <h2 className="text-[20px] font-bold font-serif text-text-main mb-1">Analytics Cruzado</h2>
             <p className="text-text-muted text-[13px]">
               Filtre e cruze os dados de todas as igrejas ao mesmo tempo.
             </p>
+            <button className="underline text-sm mt-3" onClick={() => download([
+              ["participante_id", "igreja_id", "igreja", "nome", "email", "papel", "cadastro", "ultima_atividade", "estacao_liberada", "dia"],
+              ...membrosFiltrados.map(m => [m.user_id, m.igreja_id, m.igreja_nome, m.nome, m.email, m.role, m.criado_em, m.ultima_atividade, stationNumber(m.estacao_atual), m.dia_estacao_atual]),
+            ], "rota29-participantes.csv")}>Baixar participantes do filtro</button>
           </div>
 
           {/* Busca + botão de filtros */}
@@ -553,7 +571,7 @@ export default function PainelAdmin() {
             </div>
             <div className="bg-bg-card border border-accent/20 rounded-2xl p-4 text-center">
               <Activity className="mx-auto text-accent mb-1" size={18} />
-              <p className="text-[22px] font-black leading-none">{resumo.mediaEstacao}</p>
+              <p className="text-[22px] font-black leading-none">{Math.round((resumo.mediaEstacao + 1) * 10) / 10}</p>
               <p className="text-[10px] uppercase tracking-wider text-text-muted mt-1">Estação média</p>
             </div>
             <div className="bg-bg-card border border-accent/20 rounded-2xl p-4 text-center">
@@ -597,7 +615,6 @@ export default function PainelAdmin() {
 
             {membrosFiltrados.map((m) => {
               const nivel = nivelInatividade(m.ultima_atividade);
-              const percentual = Math.min(100, Math.round((m.estacao_atual / TOTAL_ESTACOES) * 100));
               return (
                 <div key={m.user_id} className="bg-bg-card border border-accent/20 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-1.5">
@@ -625,14 +642,11 @@ export default function PainelAdmin() {
 
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[12px] text-text-muted">
-                      Estação {m.estacao_atual} de {TOTAL_ESTACOES}
+                      Estação liberada {stationNumber(m.estacao_atual)} de {TOTAL_ESTACOES}
                       {m.dia_estacao_atual ? ` · Dia ${m.dia_estacao_atual}/21` : ""}
                     </span>
-                    <span className="text-[12px] font-bold text-accent">{percentual}%</span>
                   </div>
-                  <div className="w-full bg-bg-main h-2 rounded-full overflow-hidden border border-accent/10">
-                    <div className="bg-accent h-full rounded-full opacity-80" style={{ width: `${percentual}%` }} />
-                  </div>
+                  <p className="text-xs text-text-muted">Estações podem se sobrepor. A liberação não representa conclusão.</p>
                 </div>
               );
             })}

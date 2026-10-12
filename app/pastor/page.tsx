@@ -10,18 +10,16 @@ export default function PastorDashboard() {
   const router = useRouter();
   const supabase = createClient();
   
-  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
   
   // Dashboard Data
-  const [isPastor, setIsPastor] = useState(false);
   const [totalDisciples, setTotalDisciples] = useState(0);
   const [prayerTargetsCount, setPrayerTargetsCount] = useState(0);
   const [averageRadar, setAverageRadar] = useState<number[]>([]);
   const [overallScore, setOverallScore] = useState(0);
 
   useEffect(() => {
-    setMounted(true);
     const fetchDashboard = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -45,17 +43,21 @@ export default function PastorDashboard() {
         return;
       }
       
-      setIsPastor(true);
 
       // 2. Fetch PDDs (Prayer targets) via Secure RPC
-      const { data: disciplesCount } = await supabase.rpc("get_church_total_disciples");
-      const { data: targetsCount } = await supabase.rpc("get_church_prayer_targets");
+      const { data: disciplesCount, error: disciplesError } = await supabase.rpc("get_church_total_disciples");
+      const { data: targetsCount, error: targetsError } = await supabase.rpc("get_church_prayer_targets");
       
       setTotalDisciples(disciplesCount || 0);
       setPrayerTargetsCount(targetsCount || 0);
 
       // 3. Fetch Radars (Spiritual Health) via Secure RPC
-      const { data: radarAvgData } = await supabase.rpc("get_church_average_radar");
+      const { data: radarAvgData, error: radarError } = await supabase.rpc("get_church_average_radar");
+      if (disciplesError || targetsError || radarError) {
+        setErro("Não foi possível carregar os indicadores. Atualize a página para tentar novamente.");
+        setLoading(false);
+        return;
+      }
       
       if (radarAvgData && radarAvgData.total_radars > 0) {
         const avgScores = [
@@ -80,7 +82,7 @@ export default function PastorDashboard() {
     fetchDashboard();
   }, [router, supabase]);
 
-  if (!mounted || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-bg-main flex justify-center items-center">
         <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin"></div>
@@ -89,6 +91,7 @@ export default function PastorDashboard() {
   }
 
   const maxScore = 15;
+  if (erro) return <div className="min-h-screen bg-bg-main text-text-main p-6"><h1 className="text-xl font-bold">Painel do Pastor</h1><p role="alert">{erro}</p><button onClick={() => window.location.reload()}>Tentar novamente</button></div>;
 
   return (
     <div className="min-h-screen bg-bg-main text-text-main font-sans pb-24">
@@ -117,7 +120,7 @@ export default function PastorDashboard() {
               <Users className="text-accent" size={20} />
             </div>
             <span className="text-[28px] font-black text-text-main leading-none mb-1">{totalDisciples}</span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Discípulos<br/>Ativos</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Pessoas com<br/>PDD registrado</span>
           </div>
 
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 flex flex-col items-center text-center shadow-sm">

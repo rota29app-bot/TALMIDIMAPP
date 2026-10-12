@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../utils/supabase/client";
+import { stationNumber } from "../../../utils/progress";
 import { ArrowLeft, Users, Clock } from "lucide-react";
 
 type Membro = {
@@ -42,13 +43,11 @@ export default function ListaMembros() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [membros, setMembros] = useState<Membro[]>([]);
 
   useEffect(() => {
-    setMounted(true);
     const fetchMembros = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -76,7 +75,7 @@ export default function ListaMembros() {
     fetchMembros();
   }, [router, supabase]);
 
-  if (!mounted || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-bg-main flex justify-center items-center">
         <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin"></div>
@@ -122,7 +121,6 @@ export default function ListaMembros() {
         <div className="space-y-3">
           {membros.map((m) => {
             const nivel = nivelInatividade(m.ultima_atividade);
-            const percentual = Math.min(100, Math.round((m.estacao_atual / TOTAL_ESTACOES) * 100));
 
             return (
               <div
@@ -148,16 +146,10 @@ export default function ListaMembros() {
 
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[12px] text-text-muted">
-                    Estação {m.estacao_atual} de {TOTAL_ESTACOES}
+                    Estação liberada {stationNumber(m.estacao_atual)} de {TOTAL_ESTACOES}
                   </span>
-                  <span className="text-[12px] font-bold text-accent">{percentual}%</span>
                 </div>
-                <div className="w-full bg-bg-main h-2 rounded-full overflow-hidden border border-accent/10">
-                  <div
-                    className="bg-accent h-full rounded-full opacity-80"
-                    style={{ width: `${percentual}%` }}
-                  />
-                </div>
+                <p className="text-xs text-text-muted">Estações podem se sobrepor; liberação não significa conclusão.</p>
               </div>
             );
           })}

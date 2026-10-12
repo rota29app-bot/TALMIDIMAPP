@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SplashScreen from "./components/SplashScreen";
 import KillOldServiceWorker from "./components/KillOldServiceWorker";
+import PilotActivity from "./components/PilotActivity";
 import { ThemeProvider } from "./components/ThemeProvider";
 
 const geistSans = Geist({
@@ -46,6 +47,7 @@ export default function RootLayout({
     >
       <body className="bg-black text-white">
         <KillOldServiceWorker />
+        <PilotActivity />
         <SplashScreen />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
