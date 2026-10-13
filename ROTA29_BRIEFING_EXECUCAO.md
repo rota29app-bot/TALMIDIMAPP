@@ -18,7 +18,7 @@ Rota 29 substitui o antigo nome Talmidim em toda a interface. Produto de formaç
 2. Resolução de função com `pilot_my_church`; /entrada é o roteador autorizado.
 3. Cadastro do pastor por `pilot_register_church`; membros via `pilot_join_church`.
 4. Progresso próprio via `pilot_complete_day`.
-5. Painel pastoral via `rota29_pastoral_dashboard`, com dados individualizados e agregados exclusivamente da própria igreja.
+5. Painel pastoral via `rota29_pastoral_dashboard`, com dias e práticas concluídos por estação, primeira insígnia, dados individualizados e agregados exclusivamente da própria igreja.
 6. Alerta configurável via `rota29_set_pastoral_alert` (1–90 dias).
 7. CSV com resumo e relatório por membro; não declarar intenção comercial como contrato.
 8. Dados históricos preservados, inclusive arquivo técnico da conta antiga.

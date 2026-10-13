@@ -44,6 +44,7 @@ export default function Members() {
        <div className="p-2 rounded-lg bg-bg-main"><dt>Família</dt><dd className="font-bold">{Math.min(7,Math.max(0,m.familia-1))}/7</dd></div>
        <div className="p-2 rounded-lg bg-bg-main"><dt>Compaixão</dt><dd className="font-bold">{Math.min(7,Math.max(0,m.compaixao-1))}/7</dd></div>
      </dl>
+     <p className="text-xs text-text-muted mt-3">Práticas completas: Intimidade {m.practice_intimidade||0}, Família {m.practice_familia||0}, Compaixão {m.practice_compaixao||0}.</p>
      <p className="text-xs text-text-muted mt-3">Dias ativos nesta semana: {m.days_7} · No mês: {m.days_30} · Insígnia: {m.badge?"Conquistada":"Em andamento"}</p>
     </article>)}
   </>}

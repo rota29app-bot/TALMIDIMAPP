@@ -8,6 +8,7 @@ export type PastoralMember={
  user_id:string; nome:string; email:string; last_activity:string|null;
  days_7:number;days_30:number;intimidade:number;familia:number;compaixao:number;
  badge:boolean;iniciou:boolean;inativo:boolean;abandonou:boolean;
+ practice_intimidade:number;practice_familia:number;practice_compaixao:number;
 };
 export type PastoralData={
  igreja_id:string;igreja:string;role:string;plan:string;license_status:string;
@@ -73,8 +74,8 @@ export default function PastorDashboard(){
      ["Engajamento 30 dias (%)",t.engagement_30_pct??"Não calculável"],
      ["Inativos",t.inactive,"Iniciaram e estão inativos sem concluir",t.abandoned],
      [],
-     ["Membro","E-mail","Última atividade","Dias com acesso 7d","Dias com acesso 30d","Intimidade (dia)","Família (dia)","Compaixão (dia)","Primeira insígnia","Alerta"],
-     ...data.members.map(m=>[m.nome,m.email,m.last_activity||"",m.days_7,m.days_30,m.intimidade,m.familia,m.compaixao,m.badge?"Sim":"Não",m.inativo?"Acompanhar":"Ativo"])
+     ["Membro","E-mail","Última atividade","Dias com acesso 7d","Dias com acesso 30d","Intimidade (dia)","Família (dia)","Compaixão (dia)","Práticas completas Intimidade","Práticas completas Família","Práticas completas Compaixão","Primeira insígnia","Alerta"],
+     ...data.members.map(m=>[m.nome,m.email,m.last_activity||"",m.days_7,m.days_30,m.intimidade,m.familia,m.compaixao,m.practice_intimidade,m.practice_familia,m.practice_compaixao,m.badge?"Sim":"Não",m.inativo?"Acompanhar":"Ativo"])
    ],"rota29-acompanhamento-"+new Date().toISOString().slice(0,10)+".csv");
  };
  if(loading)return <main className="min-h-screen flex items-center justify-center bg-bg-main text-text-main" role="status">Carregando painel pastoral…</main>;
@@ -138,6 +139,7 @@ export default function PastorDashboard(){
            {m.inativo?<span className="text-xs text-amber-700 font-bold">Necessita acompanhamento</span>:<span className="text-xs text-emerald-700 font-bold">Em acompanhamento</span>}
          </div>
          <p className="text-xs text-text-muted mt-2">Última atividade: {formatDate(m.last_activity)} · {m.days_7} dia(s) ativo(s) na semana</p>
+         <p className="text-xs text-text-muted mt-2">Práticas completas — Intimidade: {m.practice_intimidade||0} · Família: {m.practice_familia||0} · Compaixão: {m.practice_compaixao||0}</p>
          <div className="mt-2 flex flex-wrap gap-2 text-xs">
            <span className="bg-bg-card border rounded-lg px-2 py-1">Intimidade: {Math.min(21,Math.max(0,m.intimidade-1))}/21</span>
            <span className="bg-bg-card border rounded-lg px-2 py-1">Família: {Math.min(7,Math.max(0,m.familia-1))}/7</span>
