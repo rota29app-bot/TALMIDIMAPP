@@ -7,6 +7,11 @@ grant select on test_context to authenticated;
 insert into public.igrejas(id,nome) select id,'TESTE AUTOMÁTICO '||key from test_context where key like 'church_%';
 insert into auth.users(id,email,aud,role,raw_user_meta_data,raw_app_meta_data,created_at,updated_at)
 select id,key||'@example.invalid','authenticated','authenticated','{}','{}',now(),now() from test_context where key not like 'church_%';
+insert into public.pilot_church_registrations(igreja_id,responsavel_id,pastor_nome,cidade,estado,contato,convidados_previstos)
+select c.id,p.id,'Pastor de teste', 'Cidade de teste','AP','teste@example.invalid',10
+from test_context c join test_context p
+on p.key=case c.key when 'church_a' then 'pastor_a' else 'pastor_b' end
+where c.key in ('church_a','church_b');
 update public.user_roles set role='pastor',igreja_id=(select id from test_context where key='church_a') where user_id=(select id from test_context where key='pastor_a');
 update public.user_roles set role='pastor',igreja_id=(select id from test_context where key='church_b') where user_id=(select id from test_context where key='pastor_b');
 update public.user_roles set role='pastor',igreja_id=null where user_id=(select id from test_context where key='pastor_none');
