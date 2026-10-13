@@ -243,7 +243,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex justify-center bg-black text-white">
-      <div className="w-full max-w-[420px] bg-[#0C2D26]"><div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-[#C79A5B]/30 bg-[#0F3D33]"><img src="/brand/rota29-logo.svg" alt="ROTA29 — Discipulado no cotidiano" className="w-32 h-12 object-contain brightness-0 invert"/><span className="text-[#E9DFCE] text-[9px] tracking-[.14em] uppercase">Sua jornada continua</span></div>
+      <div className="w-full max-w-[420px] bg-[#0C2D26]"><div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-[#C79A5B]/30 bg-[#0F3D33]"><img src="/brand/rota29-logo-negative.svg" alt="ROTA29 — Discipulado no cotidiano" className="w-32 h-12 object-contain"/><span className="text-[#E9DFCE] text-[9px] tracking-[.14em] uppercase">Sua jornada continua</span></div>
         <div
           className="relative w-full overflow-hidden"
           style={{

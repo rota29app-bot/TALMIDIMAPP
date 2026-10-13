@@ -116,7 +116,7 @@ function OnboardingContent() {
       className="relative min-h-screen w-full flex justify-center cursor-pointer select-none"
       style={{ background: "linear-gradient(180deg, #0C2D26 0%, #16210f 100%)" }}
     >
-      <div className="w-full max-w-[420px] relative flex flex-col min-h-screen px-8"><div className="relative z-10 mx-auto mt-8 h-12 w-32"><img src="/brand/rota29-symbol.svg" alt="ROTA29" className="h-full w-full object-contain brightness-0 invert"/></div>
+      <div className="w-full max-w-[420px] relative flex flex-col min-h-screen px-8"><div className="relative z-10 mx-auto mt-8 h-12 w-32"><img src="/brand/rota29-symbol-negative.svg" alt="ROTA29" className="h-full w-full object-contain"/></div>
         {/* traço dourado decorativo — mesma linguagem visual do mapa da jornada */}
         <div
           className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px opacity-25"
