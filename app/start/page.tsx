@@ -63,8 +63,10 @@ export default function StartPage() {
       if (!active) return;
       if (!user || error) {
         setStep(3);
-        if (new URLSearchParams(window.location.search).has("auth_error") ||
-            new URLSearchParams(window.location.search).has("error")) {
+        const parameters = new URLSearchParams(window.location.search);
+        if (parameters.has("after_auth")) {
+          setErrorMsg("O login Google foi concluído, mas a sessão não chegou a este domínio. Verifique a URL autorizada no Supabase Auth.");
+        } else if (parameters.has("auth_error") || parameters.has("error")) {
           setErrorMsg("O Google não concluiu seu acesso. Tente novamente; se persistir, informe a coordenação.");
         }
         return;
