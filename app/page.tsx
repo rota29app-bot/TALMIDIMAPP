@@ -82,6 +82,11 @@ export default function Home() {
         return;
       }
       setGender(profile === "female" ? "female" : "male");
+       const { data: membership, error: membershipError } = await supabase.rpc("pilot_my_church");
+       if (!membershipError && !membership?.is_admin && !membership?.nome) {
+         router.replace("/igreja");
+         return;
+       }
 
       const fullName = session.user?.user_metadata?.full_name || session.user?.user_metadata?.name;
       if (fullName) setUserName(String(fullName).split(" ")[0]);
