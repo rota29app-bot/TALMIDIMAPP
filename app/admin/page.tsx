@@ -93,7 +93,7 @@ export default function PainelAdmin() {
 
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [aba, setAba] = useState<"geral" | "analytics" | "piloto">("geral");
+  const [aba, setAba] = useState<"geral" | "analytics" | "piloto">("piloto");
 
   const [igrejas, setIgrejas] = useState<Igreja[]>([]);
   const [membros, setMembros] = useState<Membro[]>([]);
@@ -293,12 +293,17 @@ export default function PainelAdmin() {
         <button aria-label="Voltar ao aplicativo" onClick={() => router.push("/dashboard")} className="text-accent p-2 -ml-2">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-[18px] font-serif font-bold text-text-main">Painel Master</h1>
+        <h1 className="text-[18px] font-serif font-bold text-text-main">ROTA29 · Administração</h1>
         <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
           <ShieldCheck size={16} className="text-accent" />
         </div>
       </div>
 
+      <section className="mx-6 mt-5 p-4 rounded-2xl border border-accent/20 bg-bg-card">
+        <strong className="text-base">Gestão Institucional ROTA29</strong>
+        <p className="mt-1 text-xs text-text-muted">Acesso exclusivo à coordenação. As igrejas entram pelo próprio cadastro pastoral; os participantes usam convite ou plano Básico. Nenhum superadmin precisa realizar Radar ou PDD para gerenciar a plataforma.</p>
+        <div className="mt-3 flex gap-3 text-xs"><span className="font-bold">Básico: uso individual</span><span className="font-bold">Liderança: igreja e painel pastoral</span></div>
+      </section>
       {/* Abas */}
       <div className="px-6 mt-6 flex gap-2">
         <button
@@ -307,7 +312,7 @@ export default function PainelAdmin() {
             aba === "geral" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"
           }`}
         >
-          Visão Geral
+          Instituições
         </button>
         <button
           onClick={() => setAba("analytics")}
@@ -315,9 +320,9 @@ export default function PainelAdmin() {
             aba === "analytics" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"
           }`}
         >
-          Analytics
+          Participantes
         </button>
-        <button onClick={() => setAba("piloto")} className={`flex-1 py-3 rounded-xl font-bold text-[13px] ${aba === "piloto" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"}`}>Piloto</button>
+        <button onClick={() => setAba("piloto")} className={`flex-1 py-3 rounded-xl font-bold text-[13px] ${aba === "piloto" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"}`}>Piloto · 21 dias</button>
       </div>
 
       {erro && <p className="text-red-500 text-[13px] text-center mt-4 px-6">{erro}</p>}
@@ -349,8 +354,11 @@ export default function PainelAdmin() {
             ))}
           </div>
 
-          {/* Criar nova igreja */}
-          <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
+          {/* Compatibilidade: criação manual fica oculta no fluxo normal do piloto. */}
+          <details className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
+            <summary className="text-sm font-bold cursor-pointer">Ações técnicas excepcionais</summary>
+            <p className="text-xs text-text-muted my-3">Para cadastro normal de igrejas, utilize o fluxo autônomo em /igreja. Esta opção legada cria apenas um registro técnico sem informações completas do pastor.</p>
+          <div className="mt-3">
             <div className="flex items-center gap-2 mb-4">
               <Plus className="text-accent" size={18} />
               <h3 className="text-[14px] font-bold uppercase tracking-wider">Cadastro excepcional pelo administrador</h3>
@@ -372,6 +380,7 @@ export default function PainelAdmin() {
               </button>
             </div>
           </div>
+          </details>
 
           {/* Promover pastor */}
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
