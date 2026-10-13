@@ -50,6 +50,7 @@ export default function StartPage() {
   // Auth states
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [existingProfile, setExistingProfile] = useState<"male" | "female" | null>(null);
 
   // Depois de Google: vídeo da caminhada, escolha de perfil, onboarding.
   // Não aguarda um SIGNED_IN que já aconteceu na rota de callback.
@@ -62,18 +63,20 @@ export default function StartPage() {
       if (!active) return;
       if (!user || error) {
         setStep(3);
-        if (new URLSearchParams(window.location.search).has("auth_error")) {
+        if (new URLSearchParams(window.location.search).has("auth_error") ||
+            new URLSearchParams(window.location.search).has("error")) {
           setErrorMsg("O Google não concluiu seu acesso. Tente novamente; se persistir, informe a coordenação.");
         }
         return;
       }
       const params = new URLSearchParams(window.location.search);
+      const profile = user.user_metadata?.profile;
+      setExistingProfile(profile === "male" || profile === "female" ? profile : null);
       if (params.get("after_auth") === "1") {
         window.history.replaceState(null, "", "/start");
         setStep(4);
         return;
       }
-      const profile = user.user_metadata?.profile;
       if (profile === "male" || profile === "female") {
         localStorage.setItem("talmidim-profile", profile);
         router.replace("/");
@@ -86,10 +89,15 @@ export default function StartPage() {
   }, [router]);
 
   const finishWalkingVideo = () => {
-    // Usuários antigos não perdem nem precisam escolher novamente seu perfil.
-    const saved = localStorage.getItem("talmidim-profile");
-    if (saved === "male" || saved === "female") router.replace("/");
-    else setStep(5);
+    // Perfil consultado no usuário autenticado, jamais reutilizado de outro
+    // login no mesmo aparelho.
+    if (existingProfile) {
+      localStorage.setItem("talmidim-profile", existingProfile);
+      router.replace("/");
+    } else {
+      localStorage.removeItem("talmidim-profile");
+      setStep(5);
+    }
   };
 
   const handleGoogleSignIn = async () => {
