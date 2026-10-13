@@ -51,40 +51,46 @@ export default function StartPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Depois de Google: vídeo da caminhada, escolha de perfil, onboarding.
+  // Não aguarda um SIGNED_IN que já aconteceu na rota de callback.
   useEffect(() => {
+    let active = true;
     setMounted(true);
-
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const profile = session.user?.user_metadata?.profile;
-        if (profile) {
-          localStorage.setItem("talmidim-profile", profile);
-          setIsTransitioning(true);
-          setTimeout(() => router.push("/"), 1200);
-        } else {
-          setStep(5);
+    const load = async () => {
+      const db = createClient();
+      const { data: { user }, error } = await db.auth.getUser();
+      if (!active) return;
+      if (!user || error) {
+        setStep(3);
+        if (new URLSearchParams(window.location.search).has("auth_error")) {
+          setErrorMsg("O Google não concluiu seu acesso. Tente novamente; se persistir, informe a coordenação.");
         }
+        return;
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("after_auth") === "1") {
+        window.history.replaceState(null, "", "/start");
+        setStep(4);
+        return;
+      }
+      const profile = user.user_metadata?.profile;
+      if (profile === "male" || profile === "female") {
+        localStorage.setItem("talmidim-profile", profile);
+        router.replace("/");
+      } else {
+        setStep(5);
       }
     };
-    checkSession();
-
-    // Escuta a volta do OAuth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        const profile = session.user?.user_metadata?.profile;
-        if (profile) {
-          localStorage.setItem("talmidim-profile", profile);
-          setIsTransitioning(true);
-          setTimeout(() => router.push("/"), 1200);
-        } else {
-          setStep(5);
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    void load();
+    return () => { active = false; };
   }, [router]);
+
+  const finishWalkingVideo = () => {
+    // Usuários antigos não perdem nem precisam escolher novamente seu perfil.
+    const saved = localStorage.getItem("talmidim-profile");
+    if (saved === "male" || saved === "female") router.replace("/");
+    else setStep(5);
+  };
 
   const handleGoogleSignIn = async () => {
     setErrorMsg("");
@@ -101,8 +107,12 @@ export default function StartPage() {
   };
 
   const selectProfile = async (profile: string) => {
+    const { error } = await supabase.auth.updateUser({ data: { profile } });
+    if (error) {
+      setErrorMsg("Não foi possível salvar o perfil. Tente novamente.");
+      return;
+    }
     localStorage.setItem("talmidim-profile", profile);
-    await supabase.auth.updateUser({ data: { profile } });
     setIsTransitioning(true);
 
     // Efeito de mergulho elegante antes de ir pro onboarding do Talmid Peregrino
@@ -240,6 +250,17 @@ export default function StartPage() {
            </div>
         </div>
       )}
+
+      {/* Vídeo original do caminhante: somente após o login Google. */}
+      {step === 4 && <div className="absolute inset-0 z-20 bg-[#0F3D33]">
+        <video src="/splash_v2.mp4" autoPlay muted playsInline loop={false}
+          controls={false} preload="auto" onEnded={finishWalkingVideo}
+          onError={finishWalkingVideo} className="h-full w-full object-cover" />
+        <button type="button" onClick={finishWalkingVideo}
+          className="absolute bottom-10 right-6 bg-[#0F3D33]/80 text-white border border-[#C79A5B]/70 rounded-full px-5 py-3 text-sm font-bold">
+          PULAR
+        </button>
+      </div>}
 
       {/* --- PASSO 5: GÊNERO --- */}
       {step === 5 && (
