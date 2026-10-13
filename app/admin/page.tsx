@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../utils/supabase/client";
 import { stationNumber } from "../../utils/progress";
+import { enableAdminTestMode, leaveAdminTestMode } from "../../utils/admin-test-mode";
 import PilotWorkspace, { download } from "./PilotWorkspace";
 import {
   ArrowLeft,
@@ -92,6 +93,20 @@ export default function PainelAdmin() {
 
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
+  const [openingApp, setOpeningApp] = useState(false);
+  const openApp = async () => {
+    if (openingApp) return;
+    setOpeningApp(true);
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) throw new Error("Sessão indisponível");
+      if (!enableAdminTestMode(user.id)) throw new Error("Armazenamento indisponível");
+      router.push("/start");
+    } catch {
+      setErro("Não foi possível abrir o app. Atualize a página e tente novamente.");
+      setOpeningApp(false);
+    }
+  };
   const [erro, setErro] = useState<string | null>(null);
   const [aba, setAba] = useState<"geral" | "analytics" | "piloto">("piloto");
 
@@ -290,7 +305,7 @@ export default function PainelAdmin() {
   return (
     <div className="min-h-screen bg-bg-main text-text-main font-sans pb-24">
       <div className="bg-bg-card pt-6 pb-4 px-6 sticky top-0 z-20 shadow-sm border-b border-accent/20 flex items-center justify-between">
-        <button aria-label="Voltar ao aplicativo" onClick={() => router.push("/dashboard")} className="text-accent p-2 -ml-2">
+        <button aria-label="Usar o app" disabled={openingApp} onClick={() => void openApp()} className="text-accent p-2 -ml-2">
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-[18px] font-serif font-bold text-text-main">ROTA29 · Administração</h1>
@@ -300,6 +315,7 @@ export default function PainelAdmin() {
             try {
               const { error } = await supabase.auth.signOut({ scope: "local" });
               if (error) throw error;
+              leaveAdminTestMode();
               window.location.replace("/start");
             } catch {
               setErro("Não foi possível sair. Tente novamente.");
@@ -310,7 +326,11 @@ export default function PainelAdmin() {
 
       <section className="mx-6 mt-5 p-4 rounded-2xl border border-accent/20 bg-bg-card">
         <strong className="text-base">Gestão Institucional ROTA29</strong>
-        <p className="mt-1 text-xs text-text-muted">Acesso exclusivo à coordenação. As igrejas entram pelo próprio cadastro pastoral; os participantes usam convite ou plano Básico. Nenhum superadmin precisa realizar Radar ou PDD para gerenciar a plataforma.</p>
+        <p className="mt-1 text-xs text-text-muted">Administre o piloto ou use o aplicativo com esta mesma conta. Ao testar, você faz Radar, PDD e jornada sem perder o acesso administrativo. Seu progresso pessoal não entra nos indicadores de participantes das igrejas.</p>
+        <button type="button" disabled={openingApp} onClick={() => void openApp()}
+          className="mt-4 w-full rounded-xl bg-[#0F3D33] px-5 py-4 font-bold text-[#E9DFCE] border border-[#C79A5B] disabled:opacity-50">
+          {openingApp ? "Abrindo app…" : "Usar o app"}
+        </button>
         <div className="mt-3 flex gap-3 text-xs"><span className="font-bold">Básico: uso individual</span><span className="font-bold">Liderança: igreja e painel pastoral</span></div>
       </section>
       {/* Abas */}

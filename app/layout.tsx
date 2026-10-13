@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SplashScreen from "./components/SplashScreen";
+import AdminTestBar from "./components/AdminTestBar";
 import RegisterPWA from "./components/RegisterPWA";
 import PilotActivity from "./components/PilotActivity";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -63,7 +64,7 @@ export default function RootLayout({
         <RegisterPWA />
         <PilotActivity />
         <SplashScreen />
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider><AdminTestBar />{children}</ThemeProvider>
       </body>
     </html>
   );

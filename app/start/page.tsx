@@ -34,6 +34,7 @@ const LeafIcon = () => (
 );
 
 import { createClient } from "../../utils/supabase/client";
+import { isAdminTestMode } from "../../utils/admin-test-mode";
 
 export default function StartPage() {
   const router = useRouter();
@@ -50,13 +51,13 @@ export default function StartPage() {
   // Auth states
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [existingProfile, setExistingProfile] = useState<"male" | "female" | null>(null);
+  const [adminJourney, setAdminJourney] = useState(false);
 
   // Depois de Google: vídeo da caminhada, escolha de perfil, onboarding.
   // Não aguarda um SIGNED_IN que já aconteceu na rota de callback.
   useEffect(() => {
     let active = true;
-    setMounted(true);
+    void Promise.resolve().then(() => { if (active) setMounted(true); });
     const load = async () => {
       const db = createClient();
       const { data: { user }, error } = await db.auth.getUser();
@@ -73,7 +74,6 @@ export default function StartPage() {
       }
       const params = new URLSearchParams(window.location.search);
       const profile = user.user_metadata?.profile;
-      setExistingProfile(profile === "male" || profile === "female" ? profile : null);
       // A função define o destino ANTES da apresentação e da escolha de gênero.
       const { data: access, error: accessError } = await db.rpc("pilot_my_church");
       if (!active) return;
@@ -83,7 +83,9 @@ export default function StartPage() {
         return;
       }
       if (params.get("after_auth") === "1") window.history.replaceState(null, "", "/start");
-      if (access.is_admin || access.role === "pastor") {
+      const testingAsAdmin = access.is_admin && isAdminTestMode(user.id);
+      setAdminJourney(!!testingAsAdmin);
+      if (!testingAsAdmin && (access.is_admin || access.role === "pastor")) {
         router.replace(access.is_admin ? "/admin" : "/pastor");
         return;
       }
@@ -101,7 +103,7 @@ export default function StartPage() {
   const finishWalkingVideo = () => {
     // A caminhada encerra a entrada; jamais pede outro login.
     // Novo membro/pastor escolhe sua modalidade institucional antes de iniciar Radar.
-    router.replace("/igreja");
+    router.replace(adminJourney ? "/onboarding" : "/igreja");
   };
 
   const handleGoogleSignIn = async () => {
@@ -304,7 +306,7 @@ export default function StartPage() {
           {/* CARD CENTRAL DE TEXTO */}
           <div className="w-full bg-[#fdfbf7]/90 backdrop-blur-sm border border-[#f0e4cd] rounded-[20px] py-3 px-5 shadow-[0_15px_40px_rgba(213,176,128,0.15)] flex flex-col items-center text-center relative flex-shrink-0">
              <p className="text-[12px] text-[#4a5c4b] font-medium leading-relaxed">
-               "Este não é um conteúdo para ler. É um <span className="font-bold text-[#b58b54]">caminho</span> para viver."
+               &quot;Este não é um conteúdo para ler. É um <span className="font-bold text-[#b58b54]">caminho</span> para viver.&quot;
              </p>
           </div>
 

@@ -2,6 +2,7 @@
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
+import {isAdminTestMode} from "../../utils/admin-test-mode";
 
 /** Única porta de entrada depois do login — função > jornada. */
 export default function Entrada() {
@@ -17,7 +18,10 @@ export default function Entrada() {
      const {data:access,error:accessError}=await db.rpc("pilot_my_church");
      if(!alive)return;
      if(accessError || !access) {setError("Não foi possível verificar seu acesso. Tente novamente.");return;}
-     if(access.is_admin===true) {router.replace("/admin");return;}
+     if(access.is_admin===true) {
+       router.replace(isAdminTestMode(user.id)
+         ? (user.user_metadata?.profile ? "/" : "/start") : "/admin");return;
+     }
      if(access.role==="pastor") {router.replace("/pastor");return;}
      // Só participantes pessoais ou membros vinculados entram na jornada.
      if(access.individual || access.igreja_id) {

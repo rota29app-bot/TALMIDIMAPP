@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getStage, stageOrder, badgeNames } from "./data";
 import { createClient } from "../utils/supabase/client";
 import BottomNav from "./components/BottomNav";
+import { isAdminTestMode } from "../utils/admin-test-mode";
 
 // Numeração exibida em cada estação (estação 1 = base, estação 7 = topo)
 const stageNumbers: Record<string, string> = {
@@ -85,16 +86,17 @@ export default function Home() {
          router.replace("/igreja");
          return;
        }
-       if (membership?.is_admin) {
+       const testingAsAdmin = membership?.is_admin && isAdminTestMode(session.user.id);
+       if (membership?.is_admin && !testingAsAdmin) {
          // Proprietário/coordenação acessa a administração sem precisar completar Radar ou PDD.
          router.replace("/admin");
          return;
        }
-       if (membership?.role === "pastor") {
+       if (membership?.role === "pastor" && !testingAsAdmin) {
          router.replace("/pastor");
          return;
        }
-       if (!membership?.nome && !membership?.individual) {
+       if (!testingAsAdmin && !membership?.nome && !membership?.individual) {
          router.replace("/igreja");
          return;
        }

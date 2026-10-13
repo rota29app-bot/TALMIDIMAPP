@@ -7,6 +7,12 @@
 - Repositório: rota29app-bot/TALMIDIMAPP
 - Supabase: TALMIDIM APP na organização rota29app
 
+## Superadmins também usam o aplicativo
+
+O mesmo endereço atende igrejas, participantes e administradores. As contas rota29.app@gmail.com e feemmissaooficial@gmail.com chegam à administração após o login Google. No painel, **Usar o app** abre o percurso de participante com a mesma conta: escolha de perfil quando necessária, Radar, PDD e jornada. Durante o uso, **Voltar à administração** permanece visível no topo.
+
+Alternar não muda papel, igreja ou permissões. O progresso pessoal é salvo na própria conta e os superadmins são excluídos dos indicadores de participantes das igrejas. A conclusão diária usa uma função própria autorizada no servidor apenas para superadmins, com as mesmas três estações e limite de um avanço diário por estação. A função normal dos participantes permanece intacta.
+
 ## Formato da jornada
 O aplicativo completo tem sete estações. Neste piloto serão disponibilizadas apenas:
 1. Intimidade com Deus: fundamento nos dias 1–7, prática contínua até o dia 21.
@@ -67,3 +73,4 @@ A suíte original supabase/tests/pilot_readiness.sql também passou nos seis gru
 - Rever custos, licenciamento e escopo de manutenção antes de expandir.
 
 A URL paralela acompanha a branch de piloto, e a main não foi publicada ou alterada.
+
