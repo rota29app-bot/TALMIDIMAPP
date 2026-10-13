@@ -1,202 +1,155 @@
 "use client";
+import {useCallback,useEffect,useState} from "react";
+import {useRouter} from "next/navigation";
+import {createClient} from "../../utils/supabase/client";
+import {Building2,Users,TrendingUp,CalendarDays,BellRing,FileDown,ArrowRight,ShieldCheck,RefreshCw,CheckCircle2} from "lucide-react";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "../../utils/supabase/client";
-import { Users, Target, Activity, ArrowLeft, BarChart3, ShieldCheck } from "lucide-react";
-import { radarAreas } from "../radar/data";
-
-export default function PastorDashboard() {
-  const router = useRouter();
-  const supabase = createClient();
-  
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState("");
-  
-  // Dashboard Data
-  const [totalDisciples, setTotalDisciples] = useState(0);
-  const [prayerTargetsCount, setPrayerTargetsCount] = useState(0);
-  const [averageRadar, setAverageRadar] = useState<number[]>([]);
-  const [overallScore, setOverallScore] = useState(0);
-
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/start");
-        return;
-      }
-      
-      const userId = session.user.id;
-
-      // 1. Check Role
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .single();
-
-      if (!roleData || roleData.role !== 'pastor') {
-        // Not a pastor - gracefully deny access
-        alert("Acesso Negado: Apenas líderes e pastores têm acesso a este painel.");
-        router.push("/dashboard");
-        return;
-      }
-      
-
-      // 2. Fetch PDDs (Prayer targets) via Secure RPC
-      const { data: disciplesCount, error: disciplesError } = await supabase.rpc("get_church_total_disciples");
-      const { data: targetsCount, error: targetsError } = await supabase.rpc("get_church_prayer_targets");
-      
-      setTotalDisciples(disciplesCount || 0);
-      setPrayerTargetsCount(targetsCount || 0);
-
-      // 3. Fetch Radars (Spiritual Health) via Secure RPC
-      const { data: radarAvgData, error: radarError } = await supabase.rpc("get_church_average_radar");
-      if (disciplesError || targetsError || radarError) {
-        setErro("Não foi possível carregar os indicadores. Atualize a página para tentar novamente.");
-        setLoading(false);
-        return;
-      }
-      
-      if (radarAvgData && radarAvgData.total_radars > 0) {
-        const avgScores = [
-          Math.round(radarAvgData.score_intimacy * 10) / 10,
-          Math.round(radarAvgData.score_family * 10) / 10,
-          Math.round(radarAvgData.score_evangelism * 10) / 10,
-          Math.round(radarAvgData.score_compassion * 10) / 10,
-          Math.round(radarAvgData.score_stewardship * 10) / 10,
-          Math.round(radarAvgData.score_service * 10) / 10,
-          Math.round(radarAvgData.score_communion * 10) / 10,
-        ];
-        
-        setAverageRadar(avgScores);
-        
-        const totalSum = avgScores.reduce((a, b) => a + b, 0);
-        setOverallScore(Math.round(totalSum));
-      }
-
-      setLoading(false);
-    };
-    
-    fetchDashboard();
-  }, [router, supabase]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-bg-main flex justify-center items-center">
-        <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  const maxScore = 15;
-  if (erro) return <div className="min-h-screen bg-bg-main text-text-main p-6"><h1 className="text-xl font-bold">Painel do Pastor</h1><p role="alert">{erro}</p><button onClick={() => window.location.reload()}>Tentar novamente</button></div>;
-
-  return (
-    <div className="min-h-screen bg-bg-main text-text-main font-sans pb-24">
-      {/* Header */}
-      <div className="bg-bg-card pt-6 pb-4 px-6 sticky top-0 z-20 shadow-sm border-b border-accent/20 flex items-center justify-between">
-        <button onClick={() => router.push("/")} className="text-accent p-2 -ml-2">
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-[18px] font-serif font-bold text-text-main">Painel do Pastor</h1>
-        <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-          <ShieldCheck size={16} className="text-accent" />
-        </div>
-      </div>
-
-      <div className="px-6 mt-8">
-        
-        <div className="mb-8">
-          <h2 className="text-[24px] font-bold font-serif text-text-main mb-2">Visão Geral da Igreja</h2>
-          <p className="text-text-muted text-[14px]">Acompanhamento agregado do desenvolvimento discipular da sua comunidade.</p>
-        </div>
-
-        {/* KPIs */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 flex flex-col items-center text-center shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mb-3">
-              <Users className="text-accent" size={20} />
-            </div>
-            <span className="text-[28px] font-black text-text-main leading-none mb-1">{totalDisciples}</span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Pessoas com<br/>PDD registrado</span>
-          </div>
-
-          <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 flex flex-col items-center text-center shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mb-3">
-              <Target className="text-accent" size={20} />
-            </div>
-            <span className="text-[28px] font-black text-text-main leading-none mb-1">{prayerTargetsCount}</span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Alvos de<br/>Oração</span>
-          </div>
-        </div>
-
-        {/* Saúde Espiritual (Radar Médio) */}
-        <div className="bg-bg-card border border-accent/20 rounded-3xl p-6 mb-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-6 border-b border-accent/10 pb-4">
-            <Activity className="text-accent" size={24} />
-            <div>
-              <h3 className="text-[16px] font-bold text-text-main uppercase tracking-wider">Saúde Espiritual</h3>
-              <p className="text-[12px] text-text-muted">Média do Radar Discipular</p>
-            </div>
-          </div>
-
-          {averageRadar.length > 0 ? (
-            <div className="space-y-4">
-              <div className="mb-6 flex justify-center">
-                <div className="inline-flex flex-col items-center bg-bg-main border border-accent/20 rounded-2xl px-6 py-3">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-text-muted mb-1">Pontuação Média</span>
-                  <span className="text-[32px] font-black text-accent leading-none">{overallScore}</span>
-                  <span className="text-[10px] text-text-muted mt-1">de 105 possíveis</span>
-                </div>
-              </div>
-
-              {radarAreas.map((area, i) => {
-                const score = averageRadar[i];
-                const percentage = (score / maxScore) * 100;
-                return (
-                  <div key={area.id}>
-                    <div className="flex justify-between items-end mb-1">
-                      <span className="text-[13px] font-medium text-text-main">{area.name}</span>
-                      <span className="text-[12px] font-bold text-accent">{score}/15</span>
-                    </div>
-                    <div className="w-full bg-bg-main h-2 rounded-full overflow-hidden border border-accent/10">
-                      <div 
-                        className="bg-accent h-full rounded-full opacity-80"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <BarChart3 className="mx-auto text-accent/30 mb-3" size={32} />
-              <p className="text-text-muted text-[13px]">Nenhum dado de radar suficiente para gerar estatísticas da igreja ainda.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Ações do Pastor */}
-        <div className="space-y-3">
-          <button
-            onClick={() => router.push("/pastor/membros")}
-            className="w-full bg-bg-main border border-accent/30 text-text-main py-4 rounded-xl font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-          >
-            Ver Lista de Membros
-          </button>
-          <button
-            disabled
-            title="Em breve"
-            className="w-full bg-bg-main border border-accent/10 text-text-muted py-4 rounded-xl font-bold opacity-50 cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            Gerenciar Liderança (em breve)
-          </button>
-        </div>
-
-      </div>
-    </div>
-  );
+export type PastoralMember={
+ user_id:string; nome:string; email:string; last_activity:string|null;
+ days_7:number;days_30:number;intimidade:number;familia:number;compaixao:number;
+ badge:boolean;iniciou:boolean;inativo:boolean;abandonou:boolean;
+};
+export type PastoralData={
+ igreja_id:string;igreja:string;role:string;plan:string;license_status:string;
+ alert_after_days:number;
+ members:PastoralMember[];
+ totals:{members:number;started:number;completed:number;active_7:number;
+ active_30:number;inactive:number;abandoned:number;
+ engagement_7_pct:number|null;engagement_30_pct:number|null};
+};
+export function csvValue(value:unknown) {
+ let s=String(value??"");
+ if(/^[\s]*[=+@\-]/.test(s))s="'"+s;
+ return '"'+s.replaceAll('"','""')+'"';
+}
+export function exportCsv(rows:unknown[][],filename:string){
+ const blob=new Blob(["\uFEFF"+rows.map(r=>r.map(csvValue).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"});
+ const url=URL.createObjectURL(blob);
+ const anchor=document.createElement("a");anchor.href=url;anchor.download=filename;
+ document.body.appendChild(anchor);anchor.click();anchor.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function formatDate(date:string|null){
+ if(!date)return "Ainda não iniciou";
+ const d=new Date(date+"T12:00:00");
+ return Number.isNaN(d.getTime())?date:new Intl.DateTimeFormat("pt-BR").format(d);
+}
+const count=(num:number|undefined)=>Number(num||0);
+export default function PastorDashboard(){
+ const router=useRouter();
+ const [data,setData]=useState<PastoralData|null>(null);
+ const [error,setError]=useState("");
+ const [loading,setLoading]=useState(true);
+ const [saving,setSaving]=useState(false);
+ const [days,setDays]=useState(21);
+ const [notice,setNotice]=useState("");
+ const refresh=useCallback(async()=>{
+   const db=createClient();
+   const {data:{user},error:authError}=await db.auth.getUser();
+   if(authError||!user){router.replace("/start");return;}
+   const {data:response,error:failure}=await db.rpc("rota29_pastoral_dashboard");
+   if(failure){setError(failure.message||"Não foi possível acessar o painel pastoral.");setLoading(false);return;}
+   const info=response as PastoralData;
+   setData(info);setDays(info.alert_after_days);setError("");setLoading(false);
+ },[router]);
+ useEffect(()=>{void refresh()},[refresh]);
+ const saveAlert=async()=>{
+   setSaving(true);setNotice("");setError("");
+   const {error:failure}=await createClient().rpc("rota29_set_pastoral_alert",{p_days:days});
+   setSaving(false);
+   if(failure){setError(failure.message);return;}
+   setNotice("Prazo de acompanhamento atualizado para sua igreja.");
+   await refresh();
+ };
+ const download=()=>{
+   if(!data)return;
+   const t=data.totals;
+   exportCsv([
+     ["ROTA29 — Resumo pastoral",data.igreja],
+     ["Plano",data.plan,"Situação",data.license_status],
+     ["Membros",t.members,"Iniciaram",t.started,"Concluíram a primeira insígnia",t.completed],
+     ["Ativos nos últimos 7 dias",t.active_7,"Ativos nos últimos 30 dias",t.active_30],
+     ["Engajamento 7 dias (%)",t.engagement_7_pct??"Não calculável"],
+     ["Engajamento 30 dias (%)",t.engagement_30_pct??"Não calculável"],
+     ["Inativos",t.inactive,"Iniciaram e estão inativos sem concluir",t.abandoned],
+     [],
+     ["Membro","E-mail","Última atividade","Dias com acesso 7d","Dias com acesso 30d","Intimidade (dia)","Família (dia)","Compaixão (dia)","Primeira insígnia","Alerta"],
+     ...data.members.map(m=>[m.nome,m.email,m.last_activity||"",m.days_7,m.days_30,m.intimidade,m.familia,m.compaixao,m.badge?"Sim":"Não",m.inativo?"Acompanhar":"Ativo"])
+   ],"rota29-acompanhamento-"+new Date().toISOString().slice(0,10)+".csv");
+ };
+ if(loading)return <main className="min-h-screen flex items-center justify-center bg-bg-main text-text-main" role="status">Carregando painel pastoral…</main>;
+ if(error&&!data)return <main className="min-h-screen bg-bg-main p-7 text-text-main space-y-4"><h1 className="text-2xl font-bold">Painel pastoral</h1><p role="alert">{error}</p><button className="underline" onClick={()=>void refresh()}>Tentar novamente</button></main>;
+ if(!data)return null;
+ const t=data.totals;
+ const cards=[
+   {name:"Membros vinculados",value:count(t.members),icon:Users},
+   {name:"Iniciaram a jornada",value:count(t.started),icon:CalendarDays},
+   {name:"Ativos na semana",value:count(t.active_7),icon:TrendingUp},
+   {name:"Ativos no mês",value:count(t.active_30),icon:TrendingUp},
+   {name:"Primeira insígnia",value:count(t.completed),icon:CheckCircle2},
+   {name:"Precisam de atenção",value:count(t.inactive),icon:BellRing}
+ ];
+ return <main className="min-h-screen bg-bg-main text-text-main pb-24">
+   <header className="sticky top-0 z-20 border-b border-accent/20 bg-bg-card px-5 py-4 flex items-center justify-between">
+    <div className="flex items-center gap-3"><Building2 size={25} className="text-accent"/><div>
+      <h1 className="font-bold text-lg">ROTA29 · Painel Pastoral</h1>
+      <p className="text-text-muted text-xs">{data.igreja}</p>
+    </div></div>
+    <button aria-label="Atualizar indicadores" onClick={()=>void refresh()}><RefreshCw size={20}/></button>
+   </header>
+   <div className="mx-auto max-w-5xl px-5 py-7 space-y-7">
+     <div className="rounded-2xl border border-accent/30 bg-bg-card p-5 space-y-2">
+       <div className="flex gap-2 items-center"><ShieldCheck size={20}/><strong>Plano Liderança · {data.license_status==="pilot"?"Piloto":data.license_status}</strong></div>
+       <p className="text-sm text-text-muted">Acompanhamento exclusivo dos membros vinculados à sua igreja. O Radar não mede valor espiritual: os indicadores servem ao cuidado, não à cobrança.</p>
+     </div>
+     <section aria-label="Indicadores da igreja" className="grid grid-cols-2 md:grid-cols-3 gap-3">
+       {cards.map(c=><div key={c.name} className="border border-accent/20 rounded-2xl bg-bg-card p-4"><c.icon size={20} className="text-accent"/><p className="text-3xl font-bold mt-3">{c.value}</p><p className="text-xs text-text-muted mt-1">{c.name}</p></div>)}
+     </section>
+     <section className="rounded-2xl border border-accent/20 bg-bg-card p-5 space-y-3">
+       <h2 className="text-lg font-bold">Engajamento da comunidade</h2>
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+         <div><p className="text-sm">Últimos 7 dias</p><strong className="text-2xl">{t.engagement_7_pct===null?"—":t.engagement_7_pct+"%"}</strong><p className="text-xs text-text-muted">{t.active_7} de {t.members} membros vinculados</p></div>
+         <div><p className="text-sm">Últimos 30 dias</p><strong className="text-2xl">{t.engagement_30_pct===null?"—":t.engagement_30_pct+"%"}</strong><p className="text-xs text-text-muted">{t.active_30} de {t.members} membros vinculados</p></div>
+       </div>
+       <p className="text-xs text-text-muted">Iniciaram e interromperam a jornada sem concluir a insígnia: <strong>{t.abandoned}</strong>. O sistema registra acessos, não mede intimidade com Deus.</p>
+     </section>
+     <section className="rounded-2xl border border-accent/20 bg-bg-card p-5 space-y-3">
+       <h2 className="text-lg font-bold">Alertas para cuidado pastoral</h2>
+       <label className="block text-sm">Sinalizar ausência de atividade após
+         <select aria-label="Dias para considerar inatividade" value={days} onChange={e=>setDays(Number(e.target.value))}
+           className="mt-2 w-full rounded-xl bg-bg-main border border-accent/30 p-3">
+           {[7,14,21,28,30,45,60,90].map(n=><option key={n} value={n}>{n} dias</option>)}
+         </select>
+       </label>
+       <button onClick={()=>void saveAlert()} disabled={saving||days===data.alert_after_days}
+         className="rounded-xl bg-accent px-4 py-3 font-bold text-bg-main disabled:opacity-40">
+         {saving?"Salvando…":"Salvar prazo"}
+       </button>
+       {notice&&<p role="status" className="text-sm">{notice}</p>}
+       {error&&<p role="alert" className="text-sm text-red-600">{error}</p>}
+     </section>
+     <section className="rounded-2xl border border-accent/20 bg-bg-card p-5 space-y-4">
+       <div className="flex flex-wrap justify-between gap-3 items-center"><h2 className="text-lg font-bold">Membros e progresso</h2>
+        <button onClick={download} className="flex items-center gap-2 rounded-xl border border-accent/40 px-4 py-3 text-sm font-bold"><FileDown size={18}/> Exportar CSV</button>
+       </div>
+       {data.members.length===0?<p className="text-sm text-text-muted">Nenhum membro vinculado ainda. Convide participantes pelo código da igreja.</p>:
+        <div className="space-y-3">{data.members.map(m=><div key={m.user_id} className="rounded-xl bg-bg-main border border-accent/15 p-4">
+         <div className="flex flex-wrap justify-between gap-2"><div><strong>{m.nome}</strong><p className="text-xs text-text-muted">{m.email}</p></div>
+           {m.inativo?<span className="text-xs text-amber-700 font-bold">Necessita acompanhamento</span>:<span className="text-xs text-emerald-700 font-bold">Em acompanhamento</span>}
+         </div>
+         <p className="text-xs text-text-muted mt-2">Última atividade: {formatDate(m.last_activity)} · {m.days_7} dia(s) ativo(s) na semana</p>
+         <div className="mt-2 flex flex-wrap gap-2 text-xs">
+           <span className="bg-bg-card border rounded-lg px-2 py-1">Intimidade: {Math.min(21,Math.max(0,m.intimidade-1))}/21</span>
+           <span className="bg-bg-card border rounded-lg px-2 py-1">Família: {Math.min(7,Math.max(0,m.familia-1))}/7</span>
+           <span className="bg-bg-card border rounded-lg px-2 py-1">Compaixão: {Math.min(7,Math.max(0,m.compaixao-1))}/7</span>
+           {m.badge&&<span className="bg-bg-card border rounded-lg px-2 py-1">Insígnia conquistada</span>}
+         </div>
+        </div>)}</div>}
+       <button onClick={()=>router.push("/pastor/membros")} className="flex items-center gap-2 text-sm underline">Ver lista completa <ArrowRight size={16}/></button>
+     </section>
+     <section className="rounded-xl border border-accent/20 bg-bg-card p-4 text-sm flex items-center justify-between gap-2">
+       <span>Convites e cadastro da igreja</span><button className="underline font-bold" onClick={()=>router.push("/igreja")}>Gerenciar convite</button>
+     </section>
+   </div>
+ </main>;
 }
