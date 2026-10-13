@@ -87,7 +87,8 @@ export default function DashboardPage() {
   }
 
   const totalUnlocked = unlockedBadges.length;
-  const totalAvailable = stageOrder.length;
+  const badgeStages = stageOrder.length === 3 ? ["house"] : stageOrder;
+  const totalAvailable = badgeStages.length;
 
   return (
     <div className="min-h-screen bg-[#0a0f0a] text-[#eaddc5] font-sans pb-32 relative">
@@ -135,7 +136,7 @@ export default function DashboardPage() {
       {/* Badges Grid */}
       <div className="px-6 pt-8 max-w-[600px] mx-auto">
         <div className="grid grid-cols-2 gap-4">
-          {stageOrder.map((stageId) => {
+          {badgeStages.map((stageId) => {
             const isUnlocked = unlockedBadges.includes(stageId);
             const stageInfo = getStage(stageId);
             const badgeName = badgeNames[stageId] || stageInfo?.title;

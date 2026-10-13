@@ -77,7 +77,9 @@ export default function HojePage() {
         dayMap[row.stage_id] = row.day_index;
       });
 
-      const done = (dayMap.house || 0) >= 21;
+      const { data: badge } = await supabase.from("user_badges")
+        .select("id").eq("user_id",session.user.id).eq("badge_id","house").maybeSingle();
+      const done = !!badge;
       setJourneyDone(done);
 
       if (!done) {

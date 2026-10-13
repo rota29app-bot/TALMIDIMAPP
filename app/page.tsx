@@ -61,6 +61,7 @@ export default function Home() {
   const [userName, setUserName] = useState("Peregrino");
   const [justAdvanced, setJustAdvanced] = useState(false);
   const [currentDay, setCurrentDay] = useState(1);
+  const [hasFirstBadge, setHasFirstBadge] = useState(false);
   // dia (1-21) de CADA estação, não só da atual — necessário porque, no
   // modelo de estações sobrepostas, mais de uma pode estar em prática ao
   // mesmo tempo (dia 8-20) enquanto outra já está no conteúdo (dia 1-7).
@@ -153,6 +154,9 @@ export default function Home() {
         dayMap[row.stage_id] = row.day_index;
       });
       setDayByStage(dayMap);
+      const { data: badge } = await supabase.from("user_badges")
+        .select("id").eq("user_id", session.user.id).eq("badge_id","house").maybeSingle();
+      setHasFirstBadge(!!badge);
 
       if (resolvedIndex < stageOrder.length) {
         const dayForCurrent = dayMap[stageOrder[resolvedIndex]];
@@ -226,8 +230,8 @@ export default function Home() {
   const totalStages = stageOrder.length;
   const currentStageId = stageOrder[currentStageIndex];
   // A primeira insígnia é entregue após 21 dias de Intimidade.
-  const jornadaIntimidade = Math.min(21, Math.max(1, dayByStage.house || 1));
-  const journeyComplete = jornadaIntimidade >= 21;
+  const jornadaIntimidade = hasFirstBadge ? 21 : Math.min(20, Math.max(0, (dayByStage.house || 1) - 1));
+  const journeyComplete = hasFirstBadge;
   const fromTitle =
     currentStageIndex === 0 ? "Início" : getStage(stageOrder[currentStageIndex - 1])?.title || "Início";
   const toTitle = journeyComplete ? "Piloto concluído" : getStage(currentStageId)?.title || "Próxima estação";
@@ -493,7 +497,7 @@ export default function Home() {
             // conteúdo liberado, prática contínua rolando em paralelo com a
             // estação mais nova. Estação com dia >= 21: insígnia já conquistada.
             const stageDay = dayByStage[id] || 0;
-            const isCompleted = !isLocked && stageDay >= 21;
+            const isCompleted = !isLocked && (id === "house" ? hasFirstBadge : stageDay >= 8);
             const isInPractice = !isLocked && !isCompleted && index !== currentStageIndex && stageDay >= 8;
             const imgSrc = `/mapa-jornada/${gender}-${id}-smoke.png`;
             const title = getStage(id)?.title || "";

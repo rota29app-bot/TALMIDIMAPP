@@ -53,6 +53,8 @@ function CongratulationsContent() {
   const isGrandFinale = stageId === "city";
   
   const [mounted, setMounted] = useState(false);
+  const [badgeVerified, setBadgeVerified] = useState(false);
+  const [verificationDone, setVerificationDone] = useState(false);
   const [showLetterBox, setShowLetterBox] = useState(false);
   const [letterText, setLetterText] = useState("");
   const [letterSaved, setLetterSaved] = useState(false);
@@ -72,27 +74,22 @@ function CongratulationsContent() {
     const saved = localStorage.getItem("talmidim-letter");
     if (saved) setLetterText(saved);
 
-    // Desbloquear a insígnia desta estação
-    const unlockBadge = async () => {
-      const supabase = (await import("../../utils/supabase/client")).createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user && stageId === "house") {
-        // Impede conceder a primeira insígnia por simples acesso à URL.
-        const { data: progress } = await supabase.from("user_daily_progress")
-          .select("day_index").eq("user_id", session.user.id)
-          .eq("stage_id", "house").maybeSingle();
-        if ((progress?.day_index || 0) < 21) return;
-        await supabase.from("user_badges").insert({
-          user_id: session.user.id,
-          badge_id: stageId
-        });
+    // Somente a função no banco concede a insígnia. A URL é somente exibição.
+    const validateBadge = async () => {
+      const db = (await import("../../utils/supabase/client")).createClient();
+      const { data: { user } } = await db.auth.getUser();
+      if (user && stageId === "house") {
+        const { data } = await db.from("user_badges").select("badge_id")
+          .eq("user_id",user.id).eq("badge_id","house").maybeSingle();
+        setBadgeVerified(!!data);
       }
+      setVerificationDone(true);
     };
-    unlockBadge();
+    void validateBadge();
   }, [stageId]);
 
-  if (!mounted || !stage) return null;
+  if (!mounted || !verificationDone) return null;
+  if (!stage || !badgeVerified) return <div className="min-h-screen bg-bg-main p-8 flex flex-col justify-center items-center text-center gap-4"><h1 className="text-xl font-bold">Insígnia ainda não conquistada</h1><p>Conclua o dia 21 de Intimidade para recebê-la.</p><button className="underline" onClick={() => router.push("/")}>Voltar à jornada</button></div>;
 
   const day21 = stage.days.find(d => d.day === 21);
   const closeText = day21 ? day21.direcao : "Estação concluída com sucesso!";

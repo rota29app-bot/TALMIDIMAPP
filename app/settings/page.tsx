@@ -138,6 +138,7 @@ export default function SettingsPage() {
             <h2 className="font-bold">Gestão e acompanhamento</h2>
             {isAdmin && <button onClick={() => router.push("/admin")} className="block w-full bg-accent text-bg-main py-3 rounded-xl font-bold">Abrir administração</button>}
             {isPastor && <button onClick={() => router.push("/pastor")} className="block w-full border border-accent/30 py-3 rounded-xl font-bold">Abrir painel pastoral</button>}
+            {isPastor && <button onClick={() => router.push("/igreja")} className="block w-full border border-accent/30 py-3 rounded-xl font-bold">Copiar convite da minha igreja</button>}
           </div>}
 
           {/* Perfil: estado, cidade, idade */}

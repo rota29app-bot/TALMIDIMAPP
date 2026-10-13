@@ -55,7 +55,7 @@ type Membro = {
   criado_em: string;
 };
 
-const TOTAL_ESTACOES = 7;
+const TOTAL_ESTACOES = 3;
 
 function formatarAtividade(dataIso: string | null): string {
   if (!dataIso) return "Nunca acessou";
@@ -136,7 +136,7 @@ export default function PainelAdmin() {
       setErro("Não foi possível carregar as igrejas.");
       return;
     }
-    setIgrejas(overview.data || []);
+    setIgrejas((overview.data || []).filter((i: Igreja) => !i.nome.startsWith("Arquivo técnico")));
 
     if (allMembers.error) {
       setErro("Não foi possível carregar os participantes. Atualize a página para tentar novamente.");
@@ -353,7 +353,7 @@ export default function PainelAdmin() {
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Plus className="text-accent" size={18} />
-              <h3 className="text-[14px] font-bold uppercase tracking-wider">Cadastrar Nova Igreja</h3>
+              <h3 className="text-[14px] font-bold uppercase tracking-wider">Cadastro excepcional pelo administrador</h3>
             </div>
             <div className="flex gap-2">
               <input
