@@ -33,7 +33,11 @@ export async function updateSession(request: NextRequest) {
 
   // Array of public routes
   const publicRoutes = ['/start', '/auth/callback', '/splash.mp4', '/splash_v2.mp4', '/vinheta.mp4'];
-  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+  // Página inicial e imagem social devem permanecer públicas para prévia no WhatsApp.
+  const pathname = request.nextUrl.pathname;
+  const isPublicRoute = pathname === "/" || pathname.startsWith("/opengraph-image")
+    || pathname.startsWith("/twitter-image")
+    || publicRoutes.some(route => pathname.startsWith(route));
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();

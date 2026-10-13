@@ -76,7 +76,8 @@ export default function StartPage() {
       setExistingProfile(profile === "male" || profile === "female" ? profile : null);
       if (params.get("after_auth") === "1") {
         window.history.replaceState(null, "", "/start");
-        setStep(4);
+        // Depois de Google vem a seleção homem/mulher.
+        setStep(5);
         return;
       }
       if (profile === "male" || profile === "female") {
@@ -91,15 +92,8 @@ export default function StartPage() {
   }, [router]);
 
   const finishWalkingVideo = () => {
-    // Perfil consultado no usuário autenticado, jamais reutilizado de outro
-    // login no mesmo aparelho.
-    if (existingProfile) {
-      localStorage.setItem("talmidim-profile", existingProfile);
-      router.replace("/");
-    } else {
-      localStorage.removeItem("talmidim-profile");
-      setStep(5);
-    }
+    // A caminhada encerra a entrada; jamais pede outro login.
+    router.replace(existingProfile ? "/" : "/onboarding");
   };
 
   const handleGoogleSignIn = async () => {
@@ -117,6 +111,8 @@ export default function StartPage() {
   };
 
   const selectProfile = async (profile: string) => {
+    if (isTransitioning) return;
+    setErrorMsg("");
     const { error } = await supabase.auth.updateUser({ data: { profile } });
     if (error) {
       setErrorMsg("Não foi possível salvar o perfil. Tente novamente.");
@@ -125,10 +121,11 @@ export default function StartPage() {
     localStorage.setItem("talmidim-profile", profile);
     setIsTransitioning(true);
 
-    // Efeito de mergulho elegante antes de ir pro onboarding do Talmid Peregrino
+    // Após escolher o perfil: vídeo do rapaz caminhando.
     setTimeout(() => {
-      router.push("/onboarding");
-    }, 1200);
+      setIsTransitioning(false);
+      setStep(4);
+    }, 450);
   };
 
   if (!mounted) return null;
@@ -262,7 +259,7 @@ export default function StartPage() {
       )}
 
       {/* Vídeo original do caminhante: somente após o login Google. */}
-      {step === 4 && <div className="absolute inset-0 z-20 bg-[#0F3D33]">
+      {step === 4 && <div className="absolute inset-0 z-20 bg-black">
         <video src="/splash_v2.mp4" autoPlay muted playsInline loop={false}
           controls={false} preload="auto" onEnded={finishWalkingVideo}
           onError={finishWalkingVideo} className="h-full w-full object-cover" />
@@ -304,6 +301,7 @@ export default function StartPage() {
           </div>
 
           {/* BOTÕES DE ESCOLHA */}
+          {errorMsg && <p role="alert" className="text-sm text-red-700 text-center">{errorMsg}</p>}
           <div className="w-full flex flex-col space-y-3 flex-shrink-0">
 
             {/* BOTÃO HOMEM */}

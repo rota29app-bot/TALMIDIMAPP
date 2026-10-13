@@ -1,29 +1,30 @@
 "use client";
-import {useCallback,useEffect,useState} from "react";
+import { useEffect, useState, useCallback } from "react";
 
-// Etapa 1: abertura do ROTA29, ANTES do login.
-// Use o vídeo original enviado em public/brand/Splash Rota29.mp4;
-// O caminho público preserva as maiúsculas e codifica o espaço do arquivo.
-const KEY="rota29-splash-seen";
-const VIDEO_PATH="/brand/Splash%20Rota29.mp4";
-export default function SplashScreen(){
-  const [show,setShow]=useState(false);
-  const [ready,setReady]=useState(false);
-  const finish=useCallback(()=>{sessionStorage.setItem(KEY,"1");setShow(false)},[]);
-  useEffect(()=>{setShow(sessionStorage.getItem(KEY)!=="1");setReady(true)},[]);
-  useEffect(()=>{
-    if(!show)return;
-    const timeout=setTimeout(finish,12500);
-    return()=>clearTimeout(timeout);
-  },[show,finish]);
-  if(!ready||!show)return null;
-  return <div role="dialog" aria-label="Abertura ROTA29" className="fixed inset-0 z-[9999] overflow-hidden bg-[#0F3D33] text-white">
-    <video src={VIDEO_PATH} autoPlay muted playsInline controls={false} loop={false}
-       preload="auto"
-       onEnded={finish} onError={finish}
-       className="absolute inset-0 h-full w-full object-cover"/>
-    <button type="button" onClick={finish}
-      className="absolute bottom-8 right-7 z-20 px-5 py-3 rounded-full bg-[#0F3D33]/80 text-[#F8F5F0] border border-[#C79A5B]/60 text-xs tracking-widest font-bold">
+// Primeiro render já inclui o vídeo; o poster evita tela verde.
+const SEEN = "rota29-splash-seen";
+const SRC = "/brand/Splash%20Rota29.mp4";
+export default function SplashScreen() {
+  const [visible, setVisible] = useState(true);
+  const finish = useCallback(() => {
+    try { sessionStorage.setItem(SEEN, "1"); } catch {}
+    setVisible(false);
+  }, []);
+  useEffect(() => {
+    try { if (sessionStorage.getItem(SEEN) === "1") { setVisible(false); return; } }
+    catch {}
+    const timer = setTimeout(finish, 13500);
+    return () => clearTimeout(timer);
+  }, [finish]);
+  if (!visible) return null;
+  return <div role="dialog" aria-label="Abertura ROTA29"
+    className="fixed inset-0 z-[9999] bg-black overflow-hidden">
+    <video src={SRC} autoPlay muted playsInline preload="auto"
+      poster="/brand/rota29-splash-poster.svg"
+      loop={false} controls={false} onEnded={finish} onError={finish}
+      className="absolute inset-0 w-full h-full object-cover" />
+    <button onClick={finish} type="button"
+      className="absolute bottom-7 right-6 z-20 rounded-full border border-[#C79A5B]/70 bg-black/65 px-5 py-3 text-xs font-bold tracking-widest text-white">
       PULAR
     </button>
   </div>;
