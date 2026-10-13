@@ -32,7 +32,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Array of public routes
-  const publicRoutes = ['/start', '/auth/callback', '/splash.mp4', '/splash_v2.mp4', '/vinheta.mp4'];
+  const publicRoutes = [
+    '/start', '/auth/callback', '/splash.mp4', '/splash_v2.mp4', '/vinheta.mp4',
+    '/sw.js', '/manifest.json', '/offline.html', '/pwa-icon-192.png',
+    '/pwa-icon-512.png', '/pwa-icon-180.png',
+  ];
   // Página inicial e imagem social devem permanecer públicas para prévia no WhatsApp.
   const pathname = request.nextUrl.pathname;
   const isPublicRoute = pathname === "/" || pathname.startsWith("/opengraph-image")
