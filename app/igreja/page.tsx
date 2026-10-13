@@ -62,6 +62,13 @@ export default function RegistroIgreja() {
   <header className="text-center space-y-3"><Building2 className="mx-auto" size={32}/><p className="text-xs tracking-widest uppercase">ROTA29 · Piloto institucional</p><h1 className="text-3xl font-bold font-serif">Minha igreja</h1><p className="text-sm">O pastor cadastra sua igreja e compartilha um convite. Os participantes entram pelo código recebido.</p></header>
   {error&&<p role="alert" className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl">{error}</p>}
   {message&&<p role="status" className="p-3 bg-green-50 border border-green-200 rounded-xl">{message}</p>}
+  <section className="rounded-2xl border border-[#c5b696] bg-white p-4 text-sm space-y-2">
+    <h2 className="font-bold text-base">Cadastro completo do piloto</h2>
+    <p>1. A igreja se cadastra aqui, por meio do seu pastor responsável.</p>
+    <p>2. O aplicativo gera o convite, sem criar participantes antecipadamente.</p>
+    <p>3. Cada participante entra com Google e se vincula à igreja pelo código.</p>
+    <p>4. O pastor acompanha a própria comunidade durante a jornada de 21 dias.</p>
+  </section>
   {church?<section className="p-5 border border-[#c5b696] rounded-2xl bg-white space-y-4">
    {church.is_admin?<><h2 className="font-bold text-xl">Conta administrativa</h2><p>Gerencie o piloto no Painel Master.</p><button className="w-full bg-[#0F3D33] text-white rounded-xl p-3 font-bold" onClick={()=>router.push("/admin")}>Abrir administração</button></>:
    church.pilot?<><h2 className="font-bold text-xl">{church.nome}</h2><p>{church.role==="pastor"?"Cadastro realizado. Envie seu código aos participantes.":"Você está vinculado à sua igreja."}</p>

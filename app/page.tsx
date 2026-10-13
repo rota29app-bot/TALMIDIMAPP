@@ -84,7 +84,19 @@ export default function Home() {
       }
       setGender(profile === "female" ? "female" : "male");
        const { data: membership, error: membershipError } = await supabase.rpc("pilot_my_church");
-       if (!membershipError && !membership?.is_admin && !membership?.nome) {
+       if (membershipError) {
+         // Falha na verificação do vínculo não autoriza navegar como se não houvesse problema.
+         console.error("ROTA29: falha ao verificar vínculo institucional", membershipError.message);
+         router.replace("/igreja");
+         return;
+       }
+       if (membership?.is_admin) {
+         // Proprietário/coordenação acessa a administração sem precisar completar Radar ou PDD.
+         router.replace("/admin");
+         return;
+       }
+       if (!membership?.nome) {
+         // Cadastro da igreja faz parte da entrada dos novos participantes.
          router.replace("/igreja");
          return;
        }

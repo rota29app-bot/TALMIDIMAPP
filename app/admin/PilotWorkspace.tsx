@@ -106,6 +106,19 @@ export default function PilotWorkspace({ churches }: { churches: Church[] }) {
   const allInvitesKnown = churches.every(i => invitedFor(i.igreja_id) !== null);
   const totalInvited = allInvitesKnown ? churches.reduce((sum, i) => sum + (invitedFor(i.igreja_id) || 0), 0) : null;
   return <section className="px-6 mt-8 space-y-6">
+    <div className="bg-bg-card border border-accent/30 rounded-2xl p-5 space-y-3">
+      <h2 className="text-lg font-bold">Como funciona a nova entrada do ROTA29</h2>
+      <p className="text-sm text-text-muted">As igrejas não devem ser cadastradas antecipadamente pelo administrador: o processo de inscrição também faz parte do teste.</p>
+      <ol className="list-decimal pl-5 space-y-2 text-sm">
+        <li><strong>Pastor:</strong> abre o link do ROTA29, entra com Google e escolhe seu perfil.</li>
+        <li><strong>Instituição:</strong> seleciona “Sou pastor” e informa igreja, cidade, UF, responsável, contato e convidados previstos.</li>
+        <li><strong>Convite:</strong> o sistema cria a igreja e gera um código que o pastor compartilha com os participantes.</li>
+        <li><strong>Participante:</strong> entra com sua própria conta Google, escolhe “Sou participante” e informa o código recebido.</li>
+        <li><strong>Jornada:</strong> realiza Radar e PDD, depois Intimidade, Família e Compaixão e Graça, até a primeira insígnia.</li>
+        <li><strong>Acompanhamento:</strong> pastor visualiza sua igreja; somente os administradores gerais visualizam todas.</li>
+      </ol>
+      <p className="text-xs text-text-muted">Para testar a inscrição completa, use duas contas Google de ensaio sem vínculo anterior: uma de pastor e uma de participante. Seu acesso administrativo permanece separado.</p>
+    </div>
     <div><h2 className="text-xl font-serif font-bold">Painel do piloto</h2>
       <p className="text-sm text-text-muted mt-2">Jornada de 21 dias: 15/10 a 04/11, Intimidade, Família e Compaixão e Graça. Primeira insígnia ao final dos 21 dias.</p>
       <p className="text-sm text-text-muted mt-2">Acompanhamento de 30 dias, até 13/11. Entrada: 15–21/10 · Adoção: 22–28/10 · Experiência: 29/10–07/11 · Avaliação final: 08–13/11.</p>
