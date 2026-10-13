@@ -46,7 +46,24 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/start";
-    return NextResponse.redirect(url);
+    const redirect = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
+    return redirect;
+  }
+
+  // O servidor confere prazo, aprovação e encerramento em cada rota da jornada.
+  const journeyRoutes = ['/onboarding','/radar','/pdd','/stage','/hoje','/diary',
+    '/dashboard','/report','/validate','/marco','/pastor','/settings','/congratulations'];
+  const journey = pathname === '/' || journeyRoutes.some(route => pathname === route || pathname.startsWith(route+'/'));
+  if (user && journey) {
+    const { data: access, error } = await supabase.rpc('rota29_pilot_access');
+    if (error || !access?.allowed) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/pilot-status'; url.search = '';
+      const redirect = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
+      return redirect;
+    }
   }
 
   return supabaseResponse;

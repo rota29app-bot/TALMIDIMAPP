@@ -1,4 +1,5 @@
 begin;
+update public.rota29_pilot_policy set starts_on=(now() at time zone 'America/Sao_Paulo')::date-1, ends_on=(now() at time zone 'America/Sao_Paulo')::date+28;
 create temporary table badge_fixture(id uuid);
 insert into badge_fixture values(gen_random_uuid());
 insert into auth.users(id,email,aud,role,raw_user_meta_data,raw_app_meta_data,created_at,updated_at)

@@ -6,6 +6,7 @@ import { createClient } from "../../utils/supabase/client";
 import { stationNumber } from "../../utils/progress";
 import { enableAdminTestMode, leaveAdminTestMode } from "../../utils/admin-test-mode";
 import PilotWorkspace, { download } from "./PilotWorkspace";
+import PilotApprovals from "./PilotApprovals";
 import {
   ArrowLeft,
   Building2,
@@ -156,7 +157,7 @@ export default function PainelAdmin() {
     if (allMembers.error) {
       setErro("Não foi possível carregar os participantes. Atualize a página para tentar novamente.");
     } else {
-      setMembros(allMembers.data || []);
+      setMembros((allMembers.data || []).filter((m: Membro) => !m.igreja_nome?.startsWith("Arquivo técnico")));
     }
   }, [supabase, router]);
 
@@ -333,6 +334,7 @@ export default function PainelAdmin() {
         </button>
         <div className="mt-3 flex gap-3 text-xs"><span className="font-bold">Básico: uso individual</span><span className="font-bold">Liderança: igreja e painel pastoral</span></div>
       </section>
+      <PilotApprovals />
       {/* Abas */}
       <div className="px-6 mt-6 flex gap-2">
         <button

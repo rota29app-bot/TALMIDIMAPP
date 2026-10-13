@@ -1,5 +1,7 @@
 -- Run in a transaction. Every synthetic fixture is rolled back.
 begin;
+update public.rota29_pilot_policy set starts_on=(now() at time zone 'America/Sao_Paulo')::date-1,
+ ends_on=(now() at time zone 'America/Sao_Paulo')::date+28;
 
 create temporary table test_context(key text primary key,id uuid default gen_random_uuid());
 insert into test_context(key) values('church_a'),('church_b'),('pastor_a'),('pastor_b'),('pastor_none'),('member_a'),('member_b');
@@ -12,6 +14,8 @@ select c.id,p.id,'Pastor de teste', 'Cidade de teste','AP','teste@example.invali
 from test_context c join test_context p
 on p.key=case c.key when 'church_a' then 'pastor_a' else 'pastor_b' end
 where c.key in ('church_a','church_b');
+update public.rota29_church_settings set approval_status='approved'
+where igreja_id in(select id from test_context where key in('church_a','church_b'));
 update public.user_roles set role='pastor',igreja_id=(select id from test_context where key='church_a') where user_id=(select id from test_context where key='pastor_a');
 update public.user_roles set role='pastor',igreja_id=(select id from test_context where key='church_b') where user_id=(select id from test_context where key='pastor_b');
 update public.user_roles set role='pastor',igreja_id=null where user_id=(select id from test_context where key='pastor_none');

@@ -20,7 +20,7 @@ export default function CompleteButton({ id, dayIndex, canComplete = true }:{
    if(error)throw error;
    localStorage.setItem("talmidim-day-"+id,String(data.day_index));
    if(data.milestone)localStorage.setItem("talmidim-progress",String(index+1));
-   router.push(data.first_badge?"/congratulations?stage=house":data.milestone?"/marco?stage="+id:"/");
+   router.push(data.first_badge?(access?.is_admin?"/congratulations?stage=house":"/pilot-status"):data.milestone?"/marco?stage="+id:"/");
   }catch(e){
    const message=e&&typeof e==="object"&&"message" in e?String(e.message):"Tente novamente.";
    alert("Não foi possível registrar o dia: "+message);

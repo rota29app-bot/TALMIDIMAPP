@@ -1,14 +1,17 @@
 -- ROTA29 institutional model, transaction-safe non-destructive tests.
 -- Run the COMPLETE file. The rollback removes all synthetic accounts/records.
 begin;
+update public.rota29_pilot_policy set starts_on=(now() at time zone 'America/Sao_Paulo')::date-1,
+ ends_on=(now() at time zone 'America/Sao_Paulo')::date+28;
 create temp table rota29_test_accounts (kind text primary key, id uuid default gen_random_uuid());
 insert into rota29_test_accounts(kind) values
- ('pastor_a'),('pastor_b'),('member_a'),('member_b'),('individual');
+ ('pastor_a'),('pastor_b'),('member_a'),('member_b'),('individual'),('admin');
 grant select on rota29_test_accounts to authenticated;
 insert into auth.users(id,email,aud,role,raw_user_meta_data,raw_app_meta_data,created_at,updated_at)
 select id,kind||'@rota29-example.invalid','authenticated','authenticated',
  '{}'::jsonb,'{}'::jsonb,now(),now()
 from rota29_test_accounts;
+update public.user_roles set is_super_admin=true where user_id=(select id from rota29_test_accounts where kind='admin');
 set local role authenticated;
 do $test$
 declare
@@ -24,6 +27,9 @@ begin
  ia:=public.pilot_register_church('Igreja A de teste','Macapá','AP','Pastor A','teste@example.invalid',20,true);
  perform set_config('request.jwt.claim.sub',b::text,true);
  ib:=public.pilot_register_church('Igreja B de teste','Belém','PA','Pastor B','teste@example.invalid',15,true);
+ perform set_config('request.jwt.claim.sub',(select id::text from rota29_test_accounts where kind='admin'),true);
+ perform public.rota29_admin_approve_church((ia->>'igreja_id')::uuid,true);
+ perform public.rota29_admin_approve_church((ib->>'igreja_id')::uuid,true);
  if ia->>'codigo_convite'=ib->>'codigo_convite' then raise exception 'Repeated invite code'; end if;
  perform set_config('request.jwt.claim.sub',m::text,true);
  result:=public.pilot_join_church(ia->>'codigo_convite');

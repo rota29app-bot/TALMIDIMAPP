@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../utils/supabase/client";
 import { Building2, Copy, Users } from "lucide-react";
-type Church = {nome?:string|null;role?:string;pilot?:boolean;is_admin?:boolean;individual?:boolean;codigo_convite?:string|null};
+type Church = {nome?:string|null;role?:string;pilot?:boolean;is_admin?:boolean;individual?:boolean;codigo_convite?:string|null;status?:string};
 const input = "w-full border border-[#c5b696] rounded-xl bg-white px-4 py-3 text-[#0F3D33]";
 export default function RegistroIgreja() {
  const router=useRouter();
@@ -24,7 +24,12 @@ export default function RegistroIgreja() {
    const {data,error:e}=await db.rpc("pilot_my_church");
    if(!alive)return;
    if(e)setError("Não foi possível verificar seu cadastro. Atualize a página.");
-   else if(data&&(data.is_admin||data.nome||data.individual))setChurch(data);
+   else if(data&&(data.is_admin||data.nome||data.individual)){
+    const {data:policy,error:policyError}=await db.rpc("rota29_pilot_access");
+    if(!alive)return;
+    if(policyError)setError("Não foi possível verificar a liberação da igreja.");
+    setChurch({...data,status:policy?.status||"pending"});
+   }
    setLoading(false);
   };
   void load();
@@ -45,8 +50,8 @@ export default function RegistroIgreja() {
   });
   setSaving(false);
   if(e){setError(e.message);return;}
-  setChurch({...data,pilot:true,role:"pastor"});
-  setMessage("Instituição cadastrada. Compartilhe o código com os convidados.");
+  setChurch({...data,pilot:true,role:"pastor",status:"pending"});
+  setMessage("Cadastro recebido. Aguarde a aprovação da coordenação para compartilhar o convite.");
  };
  const join=async(event:FormEvent<HTMLFormElement>)=>{
   event.preventDefault();if(saving)return;
@@ -73,18 +78,19 @@ export default function RegistroIgreja() {
   <section className="rounded-2xl border border-[#c5b696] bg-white p-4 text-sm space-y-2">
     <h2 className="font-bold text-base">Cadastro completo do piloto</h2>
     <p>1. A igreja se cadastra aqui, por meio do seu pastor responsável.</p>
-    <p>2. O aplicativo gera o convite, sem criar participantes antecipadamente.</p>
+    <p>2. A coordenação aprova a igreja e libera o convite para 10 participantes, além do pastor.</p>
     <p>3. Cada participante entra com Google e se vincula à igreja pelo código.</p>
     <p>4. O pastor acompanha a própria comunidade durante a jornada de 21 dias.</p>
   </section>
   {church?<section className="p-5 border border-[#c5b696] rounded-2xl bg-white space-y-4">
    {church.is_admin?<><h2 className="font-bold text-xl">Conta administrativa</h2><p>Gerencie o piloto no Painel Master.</p><button className="w-full bg-[#0F3D33] text-white rounded-xl p-3 font-bold" onClick={()=>router.push("/admin")}>Abrir administração</button></>:
-   church.individual?<><h2 className="font-bold text-xl">Plano Básico individual</h2><p>Sua jornada pessoal está liberada, sem painel de gestão pastoral.</p><button className="w-full bg-[#0F3D33] text-white rounded-xl p-3" onClick={()=>router.push("/onboarding")}>Conhecer minha jornada</button></>:
+   church.individual?<><h2 className="font-bold text-xl">Plano Básico individual</h2><p>Sua jornada pessoal segue o período do piloto: 15/10 a 13/11, até a primeira insígnia.</p><button className="w-full bg-[#0F3D33] text-white rounded-xl p-3" onClick={()=>router.push("/onboarding")}>Conhecer minha jornada</button></>:
+   church.status==="pending"||church.status==="suspended"?<><h2 className="font-bold text-xl">{church.nome}</h2><p>{church.status==="pending"?"Aguardando aprovação da coordenação. O convite será liberado após a conferência do cadastro.":"A participação desta igreja foi suspensa. Procure a coordenação."}</p><p>São 10 vagas de participantes, além do pastor. Período: 15/10 a 13/11/2026.</p><button type="button" className="underline" onClick={()=>window.location.reload()}>Conferir liberação</button></>:
    church.pilot?<><h2 className="font-bold text-xl">{church.nome}</h2><p>{church.role==="pastor"?"Cadastro realizado. Envie seu código aos participantes.":"Você está vinculado à sua igreja."}</p>
     {church.codigo_convite&&<div className="p-4 rounded-xl bg-[#f7f0df]"><p className="text-sm mb-2">Código de convite da igreja</p><p className="font-mono text-lg font-bold tracking-widest break-all">{church.codigo_convite}</p><button type="button" className="flex gap-2 items-center underline text-sm mt-3" onClick={async()=>{try{await navigator.clipboard.writeText(church.codigo_convite||"");setMessage("Código copiado.");}catch{setMessage("Copie o código exibido.");}}}><Copy size={16}/>Copiar convite</button><a className="block underline text-sm mt-3" target="_blank" rel="noopener noreferrer" href={"https://wa.me/?text="+encodeURIComponent("Você foi convidado para a jornada ROTA29 — Discipulado no cotidiano. Entre com Google em https://rota29-piloto.vercel.app e escolha Sou participante. Código da igreja: "+church.codigo_convite)}>Compartilhar convite pelo WhatsApp</a></div>}
     <button className="w-full bg-[#0F3D33] text-white rounded-xl p-3 font-bold" onClick={()=>router.push(church.role==="pastor"?"/pastor":"/onboarding")}>{church.role==="pastor"?"Abrir painel pastoral":"Começar minha jornada"}</button>
     {church.role==="pastor"&&<button className="w-full border border-[#0F3D33] rounded-xl p-3" onClick={()=>router.push("/pastor")}>Acompanhamento pastoral</button>}</>:
-   <><h2 className="font-bold text-xl">Conta anterior ao piloto</h2><p>Seu histórico foi mantido. Para alterar o vínculo, entre em contato com a coordenação.</p><button className="w-full bg-[#0F3D33] text-white rounded-xl p-3" onClick={()=>router.push("/")}>Continuar jornada existente</button></>}
+   <><h2 className="font-bold text-xl">Conta anterior ao piloto</h2><p>Seu histórico foi mantido, mas a conta antiga não participa deste piloto. Entre em contato com a coordenação.</p></>}
   </section>:
   <><div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
    <button type="button" className="bg-white border rounded-xl p-4 text-left" onClick={()=>setMode("pastor")}><Building2/><strong className="block mt-2">Sou pastor</strong><span className="text-xs">Cadastrar igreja</span></button>
@@ -107,9 +113,9 @@ export default function RegistroIgreja() {
    <div className="grid grid-cols-[1fr_85px] gap-3"><label className="block text-sm">Cidade<input name="cidade" className={input} required maxLength={90}/></label><label className="block text-sm">UF<input name="estado" className={input} required minLength={2} maxLength={2} pattern="[A-Za-z]{2}"/></label></div>
    <label className="block text-sm">Pastor responsável<input name="pastor" className={input} required maxLength={130}/></label>
    <label className="block text-sm">Contato da igreja<input name="contato" className={input} required maxLength={150} placeholder="E-mail ou telefone"/></label>
-   <label className="block text-sm">Convidados previstos<input name="convidados" className={input} type="number" required min={0} max={100000}/></label>
+   <label className="block text-sm">Participantes previstos (até 10, além do pastor)<input name="convidados" className={input} type="number" required min={0} max={10}/></label>
    <label className="flex gap-2 text-sm"><input name="aceite" type="checkbox" required/>Confirmo que tenho autorização para o cadastro e informarei os convidados sobre a coleta de dados do piloto.</label>
-   <button className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold" disabled={saving}>{saving?"Cadastrando…":"Cadastrar e gerar convite"}</button>
+   <button className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold" disabled={saving}>{saving?"Cadastrando…":"Enviar cadastro para aprovação"}</button>
   </form>}
   {mode==="membro"&&<form className="rounded-2xl bg-white border p-5 space-y-4" onSubmit={join}>
    <h2 className="text-xl font-bold">Convite do pastor</h2>

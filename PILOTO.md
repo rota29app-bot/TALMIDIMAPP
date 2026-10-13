@@ -13,6 +13,16 @@ O mesmo endereço atende igrejas, participantes e administradores. As contas rot
 
 Alternar não muda papel, igreja ou permissões. O progresso pessoal é salvo na própria conta e os superadmins são excluídos dos indicadores de participantes das igrejas. A conclusão diária usa uma função própria autorizada no servidor apenas para superadmins, com as mesmas três estações e limite de um avanço diário por estação. A função normal dos participantes permanece intacta.
 
+## Regras de entrada e encerramento
+
+- Cada igreja tem **10 vagas de participantes, além do pastor**. A 11ª vinculação é recusada no servidor.
+- O pastor cadastra a igreja e aguarda aprovação. Um dos dois superadmins confere os dados e clica em **Aprovar igreja**, no painel. Só então o convite permite entrada de participantes.
+- Os cadastros podem ser preparados antes de 15/10. A jornada dos participantes abre em **15/10/2026** e encerra em **13/11/2026**, no horário de São Paulo, ou antes, quando o participante recebe **A Semente**.
+- Não há limitação de um único login: a pessoa pode consultar e praticar várias vezes. Pode concluir apenas um dia de cada estação liberada por dia, mantendo as estações sobrepostas do modelo de 21 dias.
+- O pastor mantém acesso aos relatórios para fechar a avaliação. Os superadmins mantêm administração e teste do app.
+- As 20 contas anteriores ficam fora do acesso e das listas do piloto. Contas e históricos foram preservados no banco compartilhado; não foi executada exclusão definitiva.
+- A tela de encerramento explica o motivo: início futuro, aprovação pendente, suspensão, fim do prazo, primeira insígnia ou conta antiga.
+
 ## Formato da jornada
 O aplicativo completo tem sete estações. Neste piloto serão disponibilizadas apenas:
 1. Intimidade com Deus: fundamento nos dias 1–7, prática contínua até o dia 21.
@@ -27,7 +37,7 @@ Datas propostas: jornada de 15/10 a 04/11/2026; coleta e avaliação institucion
 1. O pastor abre o endereço do piloto, entra com Google e realiza a apresentação inicial.
 2. Seleciona "Sou pastor" na tela "Minha igreja".
 3. Informa nome oficial da igreja, cidade, UF, responsável, contato e convidados previstos. O Supabase cria a igreja, vincula seu usuário como pastor e gera um código de convite de 16 caracteres.
-4. O pastor compartilha o código diretamente com os convidados.
+4. Um superadmin aprova a igreja no painel. O pastor atualiza Minha igreja e compartilha o código com até 10 convidados.
 5. Cada participante entra com sua própria conta Google, seleciona "Sou participante" e digita o código, vinculando-se à igreja correta.
 6. Após o vínculo, conclui Radar, PDD e inicia a jornada.
 7. O pastor acompanha somente os participantes da própria igreja no Painel Pastoral.
@@ -73,4 +83,3 @@ A suíte original supabase/tests/pilot_readiness.sql também passou nos seis gru
 - Rever custos, licenciamento e escopo de manutenção antes de expandir.
 
 A URL paralela acompanha a branch de piloto, e a main não foi publicada ou alterada.
-
