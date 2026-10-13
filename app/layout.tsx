@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SplashScreen from "./components/SplashScreen";
-import KillOldServiceWorker from "./components/KillOldServiceWorker";
+import RegisterPWA from "./components/RegisterPWA";
 import PilotActivity from "./components/PilotActivity";
 import { ThemeProvider } from "./components/ThemeProvider";
 
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: { default: "ROTA29 | Discipulado no cotidiano", template: "%s | ROTA29" },
   description: "ROTA29 — formação cristã para a vida real. Discipulado no cotidiano.",
   applicationName: "ROTA29",
-  icons: { icon: "/brand/rota29-icon.svg", shortcut: "/brand/rota29-icon.svg", apple: "/brand/rota29-icon.svg" },
+  icons: { icon: "/brand/rota29-icon.svg", shortcut: "/brand/rota29-icon.svg", apple: "/pwa-icon-180.png" },
   openGraph: {
     type: "website", locale: "pt_BR",
     title: "ROTA29 — Discipulado no cotidiano",
@@ -60,7 +60,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="bg-black text-white">
-        <KillOldServiceWorker />
+        <RegisterPWA />
         <PilotActivity />
         <SplashScreen />
         <ThemeProvider>{children}</ThemeProvider>
