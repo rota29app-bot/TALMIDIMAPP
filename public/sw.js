@@ -1,6 +1,11 @@
 // ROTA29 PWA — online first, sem cache de login, usuários ou dados privados.
 const CACHE="rota29-static-v1";
-self.addEventListener("install",event=>{self.skipWaiting();});
+self.addEventListener("install", event => {
+  // Fallback offline disponível mesmo sem visita prévia à página.
+  event.waitUntil(caches.open(CACHE).then(cache =>
+    cache.addAll(["/offline.html", "/brand/rota29-icon.svg", "/brand/rota29-symbol-negative.svg"]))
+    .then(() => self.skipWaiting()));
+});
 self.addEventListener("activate",event=>{
   event.waitUntil((async()=>{
     const keys=await caches.keys();

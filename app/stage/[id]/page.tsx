@@ -456,7 +456,7 @@ function StagePageContent() {
           >
              <div className="relative w-[95px] h-[35px] mb-8 mt-0">
                {/* Reduzindo o scale para 1.7 e retornando o pt para 10 para alinhar com o coração sem esmagar o número */}
-               <Image src="/logo.png" alt="ROTA29 Logo" fill className="object-contain dark:invert opacity-90 scale-[1.7] origin-center" />
+               <Image src="/brand/rota29-symbol.svg" alt="Símbolo ROTA29" fill className="object-contain opacity-95" />
              </div>
              
              <h1 className="text-[54px] font-black text-text-main leading-[0.8] tracking-tighter">
