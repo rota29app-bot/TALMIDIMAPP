@@ -11,7 +11,7 @@
 
 O mesmo endereço atende igrejas, participantes e administradores. As contas rota29.app@gmail.com e feemmissaooficial@gmail.com chegam à administração após o login Google. No painel, **Usar o app** abre o percurso de participante com a mesma conta: escolha de perfil quando necessária, Radar, PDD e jornada. Durante o uso, **Voltar à administração** permanece visível no topo.
 
-Alternar não muda papel, igreja ou permissões. O progresso pessoal é salvo na própria conta e os superadmins são excluídos dos indicadores de participantes das igrejas. A conclusão diária usa uma função própria autorizada no servidor apenas para superadmins, com as mesmas três estações e limite de um avanço diário por estação. A função normal dos participantes permanece intacta.
+Alternar não muda papel, igreja ou permissões. O progresso pessoal é salvo na própria conta e os superadmins são excluídos dos indicadores de participantes das igrejas. A conclusão diária usa uma função própria autorizada no servidor apenas para superadmins, com as mesmas três estações e limite de um avanço diário por estação. A função dos participantes também confere aprovação, prazo e encerramento pela insígnia no servidor.
 
 ## Regras de entrada e encerramento
 
