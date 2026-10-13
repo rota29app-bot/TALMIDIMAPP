@@ -53,7 +53,11 @@ export default function PastorDashboard(){
    const info=response as PastoralData;
    setData(info);setDays(info.alert_after_days);setError("");setLoading(false);
  },[router]);
- useEffect(()=>{void refresh()},[refresh]);
+ useEffect(()=>{
+   let cancelled=false;
+   void Promise.resolve().then(()=>{if(!cancelled)void refresh();});
+   return()=>{cancelled=true;};
+ },[refresh]);
  const saveAlert=async()=>{
    setSaving(true);setNotice("");setError("");
    const {error:failure}=await createClient().rpc("rota29_set_pastoral_alert",{p_days:days});
@@ -141,7 +145,7 @@ export default function PastorDashboard(){
          <p className="text-xs text-text-muted mt-2">Última atividade: {formatDate(m.last_activity)} · {m.days_7} dia(s) ativo(s) na semana</p>
          <p className="text-xs text-text-muted mt-2">Práticas completas — Intimidade: {m.practice_intimidade||0} · Família: {m.practice_familia||0} · Compaixão: {m.practice_compaixao||0}</p>
          <div className="mt-2 flex flex-wrap gap-2 text-xs">
-           <span className="bg-bg-card border rounded-lg px-2 py-1">Intimidade: {Math.min(21,Math.max(0,m.intimidade-1))}/21</span>
+           <span className="bg-bg-card border rounded-lg px-2 py-1">Intimidade: {m.badge?21:Math.min(20,Math.max(0,m.intimidade-1))}/21</span>
            <span className="bg-bg-card border rounded-lg px-2 py-1">Família: {Math.min(7,Math.max(0,m.familia-1))}/7</span>
            <span className="bg-bg-card border rounded-lg px-2 py-1">Compaixão: {Math.min(7,Math.max(0,m.compaixao-1))}/7</span>
            {m.badge&&<span className="bg-bg-card border rounded-lg px-2 py-1">Insígnia conquistada</span>}

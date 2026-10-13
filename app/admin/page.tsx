@@ -7,7 +7,6 @@ import { stationNumber } from "../../utils/progress";
 import PilotWorkspace, { download } from "./PilotWorkspace";
 import {
   ArrowLeft,
-  ShieldCheck,
   Building2,
   Plus,
   UserPlus,
@@ -92,6 +91,7 @@ export default function PainelAdmin() {
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [aba, setAba] = useState<"geral" | "analytics" | "piloto">("piloto");
 
@@ -294,9 +294,18 @@ export default function PainelAdmin() {
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-[18px] font-serif font-bold text-text-main">ROTA29 · Administração</h1>
-        <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-          <ShieldCheck size={16} className="text-accent" />
-        </div>
+        <button type="button" disabled={signingOut} className="text-sm underline disabled:opacity-50"
+          onClick={async () => {
+            setSigningOut(true);
+            try {
+              const { error } = await supabase.auth.signOut({ scope: "local" });
+              if (error) throw error;
+              window.location.replace("/start");
+            } catch {
+              setErro("Não foi possível sair. Tente novamente.");
+              setSigningOut(false);
+            }
+          }}>{signingOut ? "Saindo…" : "Sair"}</button>
       </div>
 
       <section className="mx-6 mt-5 p-4 rounded-2xl border border-accent/20 bg-bg-card">
