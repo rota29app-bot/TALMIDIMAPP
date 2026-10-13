@@ -25,19 +25,19 @@ function MarcoContent() {
   const nextStage = nextStageId ? getStage(nextStageId) : null;
 
   return (
-    <div className="min-h-screen bg-[#fdfaf6] text-[#243525] flex flex-col items-center justify-center px-8 py-12 animate-in fade-in duration-700 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[100vw] h-[100vw] max-w-[600px] max-h-[600px] border-[1px] border-[#eaddc5]/60 rounded-full translate-x-[40%] -translate-y-[40%] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[80vw] h-[80vw] max-w-[500px] max-h-[500px] border-[1px] border-[#eaddc5]/40 rounded-full -translate-x-[30%] translate-y-[30%] pointer-events-none"></div>
+    <div className="min-h-screen bg-[#F8F5F0] text-[#0F3D33] flex flex-col items-center justify-center px-8 py-12 animate-in fade-in duration-700 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[100vw] h-[100vw] max-w-[600px] max-h-[600px] border-[1px] border-[#E9DFCE]/60 rounded-full translate-x-[40%] -translate-y-[40%] pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[80vw] h-[80vw] max-w-[500px] max-h-[500px] border-[1px] border-[#E9DFCE]/40 rounded-full -translate-x-[30%] translate-y-[30%] pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col items-center w-full max-w-[420px]">
         <div
           className="w-16 h-16 rounded-full border-2 flex items-center justify-center mb-8 animate-in zoom-in-95 duration-700"
-          style={{ borderColor: "#c69b5c" }}
+          style={{ borderColor: "#C79A5B" }}
         >
-          <ArrowRight className="text-[#c69b5c]" size={28} />
+          <ArrowRight className="text-[#C79A5B]" size={28} />
         </div>
 
-        <p className="text-[12px] font-bold text-[#b58b54] uppercase tracking-[0.3em] mb-3 text-center">
+        <p className="text-[12px] font-bold text-[#C79A5B] uppercase tracking-[0.3em] mb-3 text-center">
           7 dias de fundamento concluídos
         </p>
         <h1 className="text-[34px] font-bold text-center font-serif leading-[1.1] tracking-tight mb-6">
@@ -52,7 +52,7 @@ function MarcoContent() {
 
         <button
           onClick={() => router.push("/")}
-          className="w-full bg-[#243525] text-white py-4 px-6 rounded-[20px] font-bold shadow-[0_15px_30px_rgba(36,53,37,0.25)] active:scale-95 transition-all flex items-center justify-center gap-3 tracking-wide"
+          className="w-full bg-[#0F3D33] text-white py-4 px-6 rounded-[20px] font-bold shadow-[0_15px_30px_rgba(36,53,37,0.25)] active:scale-95 transition-all flex items-center justify-center gap-3 tracking-wide"
         >
           Ver no Mapa <Map size={20} className="opacity-80" />
         </button>
@@ -63,7 +63,7 @@ function MarcoContent() {
 
 export default function Marco() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#fdfaf6]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F8F5F0]" />}>
       <MarcoContent />
     </Suspense>
   );

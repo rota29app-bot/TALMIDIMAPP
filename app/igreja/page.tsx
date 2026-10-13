@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../../utils/supabase/client";
 import { Building2, Copy, Users } from "lucide-react";
 type Church = {nome?:string|null;role?:string;pilot?:boolean;is_admin?:boolean;codigo_convite?:string|null};
-const input = "w-full border border-[#c5b696] rounded-xl bg-white px-4 py-3 text-[#243525]";
+const input = "w-full border border-[#c5b696] rounded-xl bg-white px-4 py-3 text-[#0F3D33]";
 export default function RegistroIgreja() {
  const router=useRouter();
  const [church,setChurch]=useState<Church|null>(null);
@@ -57,18 +57,18 @@ export default function RegistroIgreja() {
   setChurch({...data,pilot:true,role:"membro"});
   setMessage("Participação vinculada. Sua jornada já pode começar.");
  };
- if(loading)return <main className="min-h-screen bg-[#fdfaf6] flex items-center justify-center">Preparando cadastro…</main>;
- return <main className="min-h-screen bg-[#fdfaf6] text-[#243525] p-6"><div className="max-w-lg mx-auto space-y-5">
+ if(loading)return <main className="min-h-screen bg-[#F8F5F0] flex items-center justify-center">Preparando cadastro…</main>;
+ return <main className="min-h-screen bg-[#F8F5F0] text-[#0F3D33] p-6"><div className="max-w-lg mx-auto space-y-5">
   <header className="text-center space-y-3"><Building2 className="mx-auto" size={32}/><p className="text-xs tracking-widest uppercase">ROTA29 · Piloto institucional</p><h1 className="text-3xl font-bold font-serif">Minha igreja</h1><p className="text-sm">O pastor cadastra sua igreja e compartilha um convite. Os participantes entram pelo código recebido.</p></header>
   {error&&<p role="alert" className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl">{error}</p>}
   {message&&<p role="status" className="p-3 bg-green-50 border border-green-200 rounded-xl">{message}</p>}
   {church?<section className="p-5 border border-[#c5b696] rounded-2xl bg-white space-y-4">
-   {church.is_admin?<><h2 className="font-bold text-xl">Conta administrativa</h2><p>Gerencie o piloto no Painel Master.</p><button className="w-full bg-[#243525] text-white rounded-xl p-3 font-bold" onClick={()=>router.push("/admin")}>Abrir administração</button></>:
+   {church.is_admin?<><h2 className="font-bold text-xl">Conta administrativa</h2><p>Gerencie o piloto no Painel Master.</p><button className="w-full bg-[#0F3D33] text-white rounded-xl p-3 font-bold" onClick={()=>router.push("/admin")}>Abrir administração</button></>:
    church.pilot?<><h2 className="font-bold text-xl">{church.nome}</h2><p>{church.role==="pastor"?"Cadastro realizado. Envie seu código aos participantes.":"Você está vinculado à sua igreja."}</p>
     {church.codigo_convite&&<div className="p-4 rounded-xl bg-[#f7f0df]"><p className="text-sm mb-2">Código de convite da igreja</p><p className="font-mono text-lg font-bold tracking-widest break-all">{church.codigo_convite}</p><button type="button" className="flex gap-2 items-center underline text-sm mt-3" onClick={async()=>{try{await navigator.clipboard.writeText(church.codigo_convite||"");setMessage("Código copiado.");}catch{setMessage("Copie o código exibido.");}}}><Copy size={16}/>Copiar convite</button></div>}
-    <button className="w-full bg-[#243525] text-white rounded-xl p-3 font-bold" onClick={()=>router.push("/")}>Continuar jornada</button>
-    {church.role==="pastor"&&<button className="w-full border border-[#243525] rounded-xl p-3" onClick={()=>router.push("/pastor")}>Acompanhamento pastoral</button>}</>:
-   <><h2 className="font-bold text-xl">Conta anterior ao piloto</h2><p>Seu histórico foi mantido. Para alterar o vínculo, entre em contato com a coordenação.</p><button className="w-full bg-[#243525] text-white rounded-xl p-3" onClick={()=>router.push("/")}>Continuar jornada existente</button></>}
+    <button className="w-full bg-[#0F3D33] text-white rounded-xl p-3 font-bold" onClick={()=>router.push("/")}>Continuar jornada</button>
+    {church.role==="pastor"&&<button className="w-full border border-[#0F3D33] rounded-xl p-3" onClick={()=>router.push("/pastor")}>Acompanhamento pastoral</button>}</>:
+   <><h2 className="font-bold text-xl">Conta anterior ao piloto</h2><p>Seu histórico foi mantido. Para alterar o vínculo, entre em contato com a coordenação.</p><button className="w-full bg-[#0F3D33] text-white rounded-xl p-3" onClick={()=>router.push("/")}>Continuar jornada existente</button></>}
   </section>:
   <><div className="grid grid-cols-2 gap-3">
    <button type="button" className="bg-white border rounded-xl p-4 text-left" onClick={()=>setMode("pastor")}><Building2/><strong className="block mt-2">Sou pastor</strong><span className="text-xs">Cadastrar igreja</span></button>
@@ -82,13 +82,13 @@ export default function RegistroIgreja() {
    <label className="block text-sm">Contato da igreja<input name="contato" className={input} required maxLength={150} placeholder="E-mail ou telefone"/></label>
    <label className="block text-sm">Convidados previstos<input name="convidados" className={input} type="number" required min={0} max={100000}/></label>
    <label className="flex gap-2 text-sm"><input name="aceite" type="checkbox" required/>Confirmo que tenho autorização para o cadastro e informarei os convidados sobre a coleta de dados do piloto.</label>
-   <button className="w-full rounded-xl bg-[#243525] text-white p-4 font-bold" disabled={saving}>{saving?"Cadastrando…":"Cadastrar e gerar convite"}</button>
+   <button className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold" disabled={saving}>{saving?"Cadastrando…":"Cadastrar e gerar convite"}</button>
   </form>}
   {mode==="membro"&&<form className="rounded-2xl bg-white border p-5 space-y-4" onSubmit={join}>
    <h2 className="text-xl font-bold">Convite do pastor</h2>
    <p className="text-sm">Digite o código que seu pastor compartilhou.</p>
    <input aria-label="Código de convite" className={input+" font-mono tracking-widest"} value={code} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g,""))} minLength={16} maxLength={16} required/>
-   <button className="w-full rounded-xl bg-[#243525] text-white p-4 font-bold" disabled={saving||code.length!==16}>{saving?"Vinculando…":"Entrar na igreja"}</button>
+   <button className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold" disabled={saving||code.length!==16}>{saving?"Vinculando…":"Entrar na igreja"}</button>
   </form>}
   </>}
   <p className="text-xs text-center text-[#687568]">Cadastros do piloto são monitorados apenas pelos responsáveis autorizados.</p>

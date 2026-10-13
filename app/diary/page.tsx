@@ -82,37 +82,37 @@ export default function DiaryPage() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-[#0a0f0a] flex justify-center items-center">
-        <div className="w-8 h-8 border-4 border-[#eaddc5]/30 border-t-[#c69b5c] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#0C2D26] flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-[#E9DFCE]/30 border-t-[#C79A5B] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] text-[#eaddc5] font-sans pb-32">
+    <div className="min-h-screen bg-[#0C2D26] text-[#E9DFCE] font-sans pb-32">
       
       {/* Header */}
-      <div className="pt-12 pb-8 px-6 border-b border-[#c69b5c]/10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1a201c] to-[#0a0f0a]">
+      <div className="pt-12 pb-8 px-6 border-b border-[#C79A5B]/10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1a201c] to-[#0C2D26]">
         {/* Botão Voltar (pedido do Nilton): depois de registrar no Memorial,
             não existia nenhum jeito claro de voltar pro dia — só o menu
             inferior, que não é óbvio. Agora tem volta direta pra onde a
             pessoa estava. */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-1 text-[#eaddc5]/70 text-[13px] font-bold mb-4 active:scale-95 transition-transform"
+          className="flex items-center gap-1 text-[#E9DFCE]/70 text-[13px] font-bold mb-4 active:scale-95 transition-transform"
         >
           <ChevronLeft size={20} />
           Voltar
         </button>
         <div className="flex items-center gap-3 mb-2">
-          <BookText className="text-[#c69b5c]" size={28} />
+          <BookText className="text-[#C79A5B]" size={28} />
           <h1 className="text-[28px] font-serif font-bold text-white">Memorial da Estação</h1>
         </div>
-        <p className="text-[#eaddc5]/70 text-[14px]">Suas memórias e a voz de Deus registradas na Jornada.</p>
+        <p className="text-[#E9DFCE]/70 text-[14px]">Suas memórias e a voz de Deus registradas na Jornada.</p>
         
         <button
           onClick={() => setIsWriting(true)}
-          className="mt-6 w-full bg-gradient-to-r from-[#d5b080] to-[#b38a53] text-[#111812] py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="mt-6 w-full bg-gradient-to-r from-[#C79A5B] to-[#b38a53] text-[#12382F] py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           <PenLine size={20} />
           Escrever no Memorial
@@ -138,8 +138,8 @@ export default function DiaryPage() {
               }).format(date);
               
               return (
-                <div key={entry.id} className="bg-[#111812] border border-white/5 rounded-[20px] p-6 shadow-lg">
-                  <div className="flex items-center gap-2 text-[#c69b5c] mb-4 pb-4 border-b border-white/5">
+                <div key={entry.id} className="bg-[#12382F] border border-white/5 rounded-[20px] p-6 shadow-lg">
+                  <div className="flex items-center gap-2 text-[#C79A5B] mb-4 pb-4 border-b border-white/5">
                     <Calendar size={16} />
                     <span className="text-[12px] font-bold uppercase tracking-widest">{formattedDate}</span>
                   </div>
@@ -153,7 +153,7 @@ export default function DiaryPage() {
                   
                   <div>
                     <h3 className="text-[14px] text-white/50 mb-2 font-bold uppercase tracking-wide">O que Deus falou comigo?</h3>
-                    <p className="text-[16px] text-[#eaddc5] leading-relaxed font-serif whitespace-pre-wrap italic border-l-2 border-[#c69b5c] pl-4">
+                    <p className="text-[16px] text-[#E9DFCE] leading-relaxed font-serif whitespace-pre-wrap italic border-l-2 border-[#C79A5B] pl-4">
                       "{entry.deus_falou}"
                     </p>
                   </div>
@@ -166,8 +166,8 @@ export default function DiaryPage() {
 
       {/* Modal de Nova Entrada (Full Screen) */}
       {isWriting && (
-        <div className="fixed inset-0 z-50 bg-[#0a0f0a] overflow-y-auto pb-safe">
-          <div className="sticky top-0 bg-[#0a0f0a] border-b border-white/10 px-4 py-4 flex items-center justify-between z-10">
+        <div className="fixed inset-0 z-50 bg-[#0C2D26] overflow-y-auto pb-safe">
+          <div className="sticky top-0 bg-[#0C2D26] border-b border-white/10 px-4 py-4 flex items-center justify-between z-10">
             <button 
               onClick={() => setIsWriting(false)}
               className="p-2 text-white/70 hover:text-white"
@@ -180,33 +180,33 @@ export default function DiaryPage() {
           
           <div className="p-6 max-w-[600px] mx-auto">
             <div className="mb-8">
-              <label className="block text-[#c69b5c] text-[13px] font-bold uppercase tracking-widest mb-3">
+              <label className="block text-[#C79A5B] text-[13px] font-bold uppercase tracking-widest mb-3">
                 O que foi vivido hoje?
               </label>
               <textarea
                 value={vividoHoje}
                 onChange={(e) => setVividoHoje(e.target.value)}
                 placeholder="Escreva sobre o seu dia, seus desafios, suas vitórias..."
-                className="w-full bg-[#111812] text-white border border-white/10 rounded-xl p-4 min-h-[150px] focus:outline-none focus:border-[#c69b5c] transition-colors resize-none placeholder:text-white/20 font-serif"
+                className="w-full bg-[#12382F] text-white border border-white/10 rounded-xl p-4 min-h-[150px] focus:outline-none focus:border-[#C79A5B] transition-colors resize-none placeholder:text-white/20 font-serif"
               />
             </div>
 
             <div className="mb-8">
-              <label className="block text-[#c69b5c] text-[13px] font-bold uppercase tracking-widest mb-3">
+              <label className="block text-[#C79A5B] text-[13px] font-bold uppercase tracking-widest mb-3">
                 O que Deus falou comigo?
               </label>
               <textarea
                 value={deusFalou}
                 onChange={(e) => setDeusFalou(e.target.value)}
                 placeholder="Quais as impressões, versículos ou respostas que Ele te deu hoje?"
-                className="w-full bg-[#111812] text-[#eaddc5] border border-white/10 rounded-xl p-4 min-h-[150px] focus:outline-none focus:border-[#c69b5c] transition-colors resize-none placeholder:text-white/20 font-serif italic"
+                className="w-full bg-[#12382F] text-[#E9DFCE] border border-white/10 rounded-xl p-4 min-h-[150px] focus:outline-none focus:border-[#C79A5B] transition-colors resize-none placeholder:text-white/20 font-serif italic"
               />
             </div>
             
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full bg-[#c69b5c] text-[#111812] py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all disabled:opacity-50"
+              className="w-full bg-[#C79A5B] text-[#12382F] py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all disabled:opacity-50"
             >
               {saving ? "Guardando..." : "Guardar no Memorial"}
             </button>
