@@ -22,11 +22,11 @@ export default function BottomNav() {
       <div className="relative" style={{ height: 1 }}>
         <span
           className="absolute rounded-full"
-          style={{ left: 0, top: -11, width: 22, height: 22, transform: "translateX(-50%)", background: "#0a0f0a" }}
+          style={{ left: 0, top: -11, width: 22, height: 22, transform: "translateX(-50%)", background: "#0C2D26" }}
         />
         <span
           className="absolute rounded-full"
-          style={{ right: 0, top: -11, width: 22, height: 22, transform: "translateX(50%)", background: "#0a0f0a" }}
+          style={{ right: 0, top: -11, width: 22, height: 22, transform: "translateX(50%)", background: "#0C2D26" }}
         />
         <div
           className="absolute"
@@ -34,7 +34,7 @@ export default function BottomNav() {
         />
       </div>
 
-      <div className="bg-[#0a0f0a]/95 backdrop-blur-md">
+      <div className="bg-[#0F3D33]/95 backdrop-blur-md">
         <div className="flex px-2 pt-4 pb-3">
           {navItems.map((item) => {
             const isActive = pathname === item.path;
@@ -49,10 +49,10 @@ export default function BottomNav() {
                 <Icon
                   size={20}
                   strokeWidth={isActive ? 2.5 : 2}
-                  className={isActive ? "text-[#c69b5c]" : "text-[#eaddc5]/45"}
+                  className={isActive ? "text-[#C79A5B]" : "text-[#E9DFCE]/45"}
                 />
                 <span
-                  className={`uppercase mt-1 ${isActive ? "text-[#c69b5c]" : "text-[#eaddc5]/45"}`}
+                  className={`uppercase mt-1 ${isActive ? "text-[#C79A5B]" : "text-[#E9DFCE]/45"}`}
                   style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.08em" }}
                 >
                   {item.name}
@@ -62,7 +62,7 @@ export default function BottomNav() {
                   style={{
                     width: 14,
                     height: 2,
-                    background: isActive ? "#c69b5c" : "transparent",
+                    background: isActive ? "#C79A5B" : "transparent",
                   }}
                 />
               </button>
