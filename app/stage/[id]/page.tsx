@@ -456,7 +456,7 @@ function StagePageContent() {
           >
              <div className="relative w-[95px] h-[35px] mb-8 mt-0">
                {/* Reduzindo o scale para 1.7 e retornando o pt para 10 para alinhar com o coração sem esmagar o número */}
-               <Image src="/logo.png" alt="Talmidim Logo" fill className="object-contain dark:invert opacity-90 scale-[1.7] origin-center" />
+               <Image src="/logo.png" alt="ROTA29 Logo" fill className="object-contain dark:invert opacity-90 scale-[1.7] origin-center" />
              </div>
              
              <h1 className="text-[54px] font-black text-text-main leading-[0.8] tracking-tighter">
@@ -1122,7 +1122,7 @@ function StagePageContent() {
             </div>
             <div className="w-full h-2 rounded-full bg-text-main/10 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#b58b54] to-[#eaddc5] transition-all duration-700"
+                className="h-full rounded-full bg-gradient-to-r from-[#C79A5B] to-[#E9DFCE] transition-all duration-700"
                 style={{ width: `${(currentDayData.day / 21) * 100}%` }}
               />
             </div>

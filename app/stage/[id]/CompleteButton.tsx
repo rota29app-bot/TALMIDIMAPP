@@ -24,7 +24,7 @@ export default function CompleteButton({ id, dayIndex, canComplete = true }:{
   }finally{setSaving(false);}
  };
  return <div className="flex flex-col items-center w-full">
-  <button onClick={()=>void complete()} disabled={saving||!canComplete} className={"w-3/4 max-w-[250px] py-3 rounded-xl font-bold text-lg shadow-md transition-all duration-300 "+(!canComplete?"bg-[#c69c6d]/30 text-white/60 cursor-not-allowed":"bg-[#c69c6d] text-white active:scale-95")}>{saving?"Salvando…":"Concluir"}</button>
-  <p className="text-[13px] font-medium text-[#1a202c]/70 text-center mt-3">Um dia de cada vez. Não avance sem praticar.</p>
+  <button onClick={()=>void complete()} disabled={saving||!canComplete} className={"w-3/4 max-w-[250px] py-3 rounded-xl font-bold text-lg shadow-md transition-all duration-300 "+(!canComplete?"bg-[#C79A5B]/30 text-white/60 cursor-not-allowed":"bg-[#C79A5B] text-white active:scale-95")}>{saving?"Salvando…":"Concluir"}</button>
+  <p className="text-[13px] font-medium text-[#2E2E2E]/70 text-center mt-3">Um dia de cada vez. Não avance sem praticar.</p>
  </div>;
 }
