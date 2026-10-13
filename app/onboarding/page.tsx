@@ -102,7 +102,7 @@ function OnboardingContent() {
     if (isReviewing) {
       router.back();
     } else {
-      router.push("/igreja");
+      router.push("/entrada");
     }
   };
 

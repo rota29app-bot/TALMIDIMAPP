@@ -74,18 +74,25 @@ export default function StartPage() {
       const params = new URLSearchParams(window.location.search);
       const profile = user.user_metadata?.profile;
       setExistingProfile(profile === "male" || profile === "female" ? profile : null);
-      if (params.get("after_auth") === "1") {
-        window.history.replaceState(null, "", "/start");
-        // Depois de Google vem a seleção homem/mulher.
-        setStep(5);
+      // A função define o destino ANTES da apresentação e da escolha de gênero.
+      const { data: access, error: accessError } = await db.rpc("pilot_my_church");
+      if (!active) return;
+      if (accessError || !access) {
+        setErrorMsg("Falha ao conferir as permissões da conta. Tente novamente.");
+        setStep(3);
+        return;
+      }
+      if (params.get("after_auth") === "1") window.history.replaceState(null, "", "/start");
+      if (access.is_admin || access.role === "pastor") {
+        router.replace(access.is_admin ? "/admin" : "/pastor");
         return;
       }
       if (profile === "male" || profile === "female") {
         localStorage.setItem("talmidim-profile", profile);
-        router.replace("/");
-      } else {
-        setStep(5);
+        router.replace("/entrada");
+        return;
       }
+      setStep(5);
     };
     void load();
     return () => { active = false; };
@@ -93,7 +100,8 @@ export default function StartPage() {
 
   const finishWalkingVideo = () => {
     // A caminhada encerra a entrada; jamais pede outro login.
-    router.replace(existingProfile ? "/" : "/onboarding");
+    // Novo membro/pastor escolhe sua modalidade institucional antes de iniciar Radar.
+    router.replace("/igreja");
   };
 
   const handleGoogleSignIn = async () => {

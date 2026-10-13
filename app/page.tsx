@@ -77,13 +77,8 @@ export default function Home() {
         return;
       }
 
-      const profile = session.user?.user_metadata?.profile;
-      if (!profile) {
-        router.push("/start");
-        return;
-      }
-      setGender(profile === "female" ? "female" : "male");
-       const { data: membership, error: membershipError } = await supabase.rpc("pilot_my_church");
+      // Não obrigar superadministradores ou pastores a atravessar Radar/PDD.
+      const { data: membership, error: membershipError } = await supabase.rpc("pilot_my_church");
        if (membershipError) {
          // Falha na verificação do vínculo não autoriza navegar como se não houvesse problema.
          console.error("ROTA29: falha ao verificar vínculo institucional", membershipError.message);
@@ -95,11 +90,20 @@ export default function Home() {
          router.replace("/admin");
          return;
        }
-       if (!membership?.nome) {
-         // Cadastro da igreja faz parte da entrada dos novos participantes.
+       if (membership?.role === "pastor") {
+         router.replace("/pastor");
+         return;
+       }
+       if (!membership?.nome && !membership?.individual) {
          router.replace("/igreja");
          return;
        }
+       const profile = session.user?.user_metadata?.profile;
+       if (!profile) {
+         router.replace("/start?profile=1");
+         return;
+       }
+       setGender(profile === "female" ? "female" : "male");
 
       const fullName = session.user?.user_metadata?.full_name || session.user?.user_metadata?.name;
       if (fullName) setUserName(String(fullName).split(" ")[0]);
