@@ -76,7 +76,7 @@ export default function SettingsPage() {
     
     if (result === "granted") {
       new Notification("Notificações Ativadas!", {
-        body: "Você receberá lembretes para sua jornada Talmidim.",
+        body: "Você receberá lembretes para sua jornada ROTA29.",
         icon: "/icons/icon-192x192.png"
       });
     }
@@ -101,7 +101,7 @@ export default function SettingsPage() {
         <button onClick={() => router.back()} className="text-accent p-2 -ml-2">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-[18px] font-serif font-bold text-text-main">Lembretes</h1>
+        <h1 className="text-[18px] font-serif font-bold text-text-main">Meu ROTA29</h1>
         <div className="w-8"></div>
       </div>
 
@@ -244,7 +244,7 @@ export default function SettingsPage() {
             className={`w-full py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2
               ${saved 
                 ? "bg-green-600 text-white" 
-                : "bg-gradient-to-r from-[#d5b080] to-[#b38a53] text-[#111812]"
+                : "bg-gradient-to-r from-[#C79A5B] to-[#b38a53] text-[#12382F]"
               }`}
           >
             {saved ? (

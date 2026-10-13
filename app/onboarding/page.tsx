@@ -37,7 +37,7 @@ const screens: Screen[] = [
   {
     icon: WalkIcon,
     lines: [
-      "Bem-vindo ao Talmidim!",
+      "Bem-vindo ao ROTA29!",
       "Você está iniciando uma jornada para crescer como discípulo de Jesus. Mais do que aprender conteúdos, você será convidado a viver a Palavra de Deus no cotidiano, um passo de cada vez.",
     ],
     buttonLabel: "Começar",
@@ -45,16 +45,16 @@ const screens: Screen[] = [
   {
     icon: CompassIcon,
     lines: [
-      "Por que o Talmidim existe?",
-      "Muitos cristãos desejam amadurecer na fé, mas nem sempre conseguem transformar conhecimento em prática. O Talmidim foi criado para incentivar hábitos que aproximam a vida do discípulo do modo de viver de Cristo.",
+      "Por que o ROTA29 existe?",
+      "Muitos cristãos desejam amadurecer na fé, mas nem sempre conseguem transformar conhecimento em prática. O ROTA29 foi criado para incentivar hábitos que aproximam a vida do discípulo do modo de viver de Cristo.",
     ],
     buttonLabel: "Entendi",
   },
   {
     icon: WalkIcon,
     lines: [
-      "O que é o Talmidim?",
-      "'Talmid' significa discípulo. O Talmidim é uma jornada que integra conhecimento bíblico, práticas espirituais e missão no cotidiano, formando discípulos que vivem a fé todos os dias.",
+      "O que é o ROTA29?",
+      "ROTA29 representa uma jornada contínua de formação: conhecimento bíblico, práticas espirituais e missão no cotidiano, formando discípulos que vivem a fé todos os dias.",
     ],
     buttonLabel: "Continuar",
   },
@@ -62,7 +62,7 @@ const screens: Screen[] = [
     icon: MapRouteIcon,
     lines: [
       "Como funciona a jornada?",
-      "Você iniciará conhecendo seu ponto de partida, percorrerá sete estações de crescimento e realizará práticas fundamentadas na Bíblia. Ao final de cada estação registrará um memorial do que Deus fez em sua caminhada.",
+      "Você conhecerá seu ponto de partida e, neste piloto, percorrerá três estações: Intimidade com Deus, Família e Compaixão e Graça. A prática continua até a primeira insígnia, no 21º dia.",
     ],
     buttonLabel: "Conhecer meu ponto de partida",
   },
@@ -114,21 +114,21 @@ function OnboardingContent() {
       ref={containerRef}
       onClick={advance}
       className="relative min-h-screen w-full flex justify-center cursor-pointer select-none"
-      style={{ background: "linear-gradient(180deg, #0a0f0a 0%, #16210f 100%)" }}
+      style={{ background: "linear-gradient(180deg, #0C2D26 0%, #16210f 100%)" }}
     >
-      <div className="w-full max-w-[420px] relative flex flex-col min-h-screen px-8">
+      <div className="w-full max-w-[420px] relative flex flex-col min-h-screen px-8"><div className="relative z-10 mx-auto mt-8 h-12 w-32"><img src="/brand/rota29-symbol.svg" alt="ROTA29" className="h-full w-full object-contain brightness-0 invert"/></div>
         {/* traço dourado decorativo — mesma linguagem visual do mapa da jornada */}
         <div
           className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px opacity-25"
-          style={{ background: "linear-gradient(180deg, transparent 0%, #c69b5c 50%, transparent 100%)" }}
+          style={{ background: "linear-gradient(180deg, transparent 0%, #C79A5B 50%, transparent 100%)" }}
         />
 
         <div className="flex-1 flex flex-col justify-center relative z-10">
           <div
             className="w-11 h-11 rounded-full border flex items-center justify-center mb-6"
-            style={{ borderColor: "#c69b5c" }}
+            style={{ borderColor: "#C79A5B" }}
           >
-            <Icon className="w-5 h-5 text-[#c69b5c]" />
+            <Icon className="w-5 h-5 text-[#C79A5B]" />
           </div>
 
           {Screen.lines.map((line, i) => (
@@ -139,7 +139,7 @@ function OnboardingContent() {
                 fontFamily: i === 0 ? "Georgia, serif" : undefined,
                 fontSize: i === 0 ? 24 : 15,
                 fontWeight: i === 0 ? 700 : 400,
-                color: i === 0 ? "#fdf0d5" : "#eaddc5cc",
+                color: i === 0 ? "#fdf0d5" : "#E9DFCEcc",
                 marginBottom: 12,
                 opacity: 0,
                 transform: "translateY(14px)",
@@ -159,7 +159,7 @@ function OnboardingContent() {
             }}
             className="mt-4 self-start uppercase font-bold tracking-wide text-[13px] px-6 py-3 rounded-xl"
             style={{
-              background: "linear-gradient(90deg, #b58b54, #eaddc5)",
+              background: "linear-gradient(90deg, #C79A5B, #E9DFCE)",
               color: "#1a1406",
               opacity: 0,
               animation: `teleUp 0.7s cubic-bezier(0.25,1,0.5,1) ${Screen.lines.length * 0.22 + 0.1}s forwards`,
@@ -174,7 +174,7 @@ function OnboardingContent() {
           {!isLast && (
             <p
               className="text-center text-[10px] uppercase tracking-widest mb-4"
-              style={{ color: "#eaddc580" }}
+              style={{ color: "#E9DFCE80" }}
             >
               Toque pra continuar
             </p>
@@ -187,7 +187,7 @@ function OnboardingContent() {
                 style={{
                   width: 6,
                   height: 6,
-                  background: i === index ? "#eaddc5" : "#eaddc540",
+                  background: i === index ? "#E9DFCE" : "#E9DFCE40",
                 }}
               />
             ))}
@@ -207,7 +207,7 @@ function OnboardingContent() {
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" style={{ background: "#0a0f0a" }} />}>
+    <Suspense fallback={<div className="min-h-screen" style={{ background: "#0C2D26" }} />}>
       <OnboardingContent />
     </Suspense>
   );

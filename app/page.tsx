@@ -195,11 +195,11 @@ export default function Home() {
     return (
       <div
         className="min-h-screen flex justify-center items-center"
-        style={{ background: "linear-gradient(180deg, #243525 0%, #16210f 100%)" }}
+        style={{ background: "linear-gradient(180deg, #0F3D33 0%, #16210f 100%)" }}
       >
         <div className="w-full max-w-[420px] min-h-screen flex flex-col gap-4 justify-center items-center">
-          <div className="w-9 h-9 border-4 border-[#eaddc5]/25 border-t-[#c69b5c] rounded-full animate-spin"></div>
-          <p className="text-[#eaddc5]/70 text-sm tracking-wide">Preparando sua jornada...</p>
+          <div className="w-9 h-9 border-4 border-[#E9DFCE]/25 border-t-[#C79A5B] rounded-full animate-spin"></div>
+          <p className="text-[#E9DFCE]/70 text-sm tracking-wide">Preparando sua jornada...</p>
         </div>
       </div>
     );
@@ -243,7 +243,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex justify-center bg-black text-white">
-      <div className="w-full max-w-[420px] bg-neutral-900">
+      <div className="w-full max-w-[420px] bg-[#0C2D26]"><div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-[#C79A5B]/30 bg-[#0F3D33]"><img src="/brand/rota29-logo.svg" alt="ROTA29 — Discipulado no cotidiano" className="w-32 h-12 object-contain brightness-0 invert"/><span className="text-[#E9DFCE] text-[9px] tracking-[.14em] uppercase">Sua jornada continua</span></div>
         <div
           className="relative w-full overflow-hidden"
           style={{
@@ -262,11 +262,11 @@ export default function Home() {
           >
             <div
               className="flex items-center justify-between"
-              style={{ background: "#243525", padding: "12px 20px" }}
+              style={{ background: "#0F3D33", padding: "12px 20px" }}
             >
               <span
                 className="font-bold uppercase"
-                style={{ color: "#fdfaf6", fontSize: 12, letterSpacing: "0.05em" }}
+                style={{ color: "#F8F5F0", fontSize: 12, letterSpacing: "0.05em" }}
               >
                 Passagem da jornada
               </span>
@@ -275,7 +275,7 @@ export default function Home() {
                 style={{
                   fontFamily: "monospace",
                   fontSize: 10,
-                  color: "#fdfaf6",
+                  color: "#F8F5F0",
                   background: "#ffffff22",
                   padding: "4px 9px",
                 }}
@@ -293,7 +293,7 @@ export default function Home() {
                   >
                     Nome do viajante
                   </p>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {userName}
                   </p>
                 </div>
@@ -304,7 +304,7 @@ export default function Home() {
                   >
                     Perfil
                   </p>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     Jornada Discipular
                   </p>
                 </div>
@@ -318,7 +318,7 @@ export default function Home() {
                   >
                     De
                   </p>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {fromTitle}
                   </p>
                 </div>
@@ -329,7 +329,7 @@ export default function Home() {
                   >
                     Para
                   </p>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {toTitle}
                   </p>
                 </div>
@@ -372,7 +372,7 @@ export default function Home() {
                   <p className="uppercase tracking-widest" style={{ fontSize: 8, color: "#8b613199", margin: 0 }}>
                     Estação
                   </p>
-                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {stageLabel}
                   </p>
                 </div>
@@ -380,7 +380,7 @@ export default function Home() {
                   <p className="uppercase tracking-widest" style={{ fontSize: 8, color: "#8b613199", margin: 0 }}>
                     Dia
                   </p>
-                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {dayLabel}
                   </p>
                 </div>
@@ -388,7 +388,7 @@ export default function Home() {
                   <p className="uppercase tracking-widest" style={{ fontSize: 8, color: "#8b613199", margin: 0 }}>
                     Progresso
                   </p>
-                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {totalProgressPct}%
                   </p>
                 </div>
@@ -425,8 +425,8 @@ export default function Home() {
                 fontFamily: "monospace",
                 fontSize: 9,
                 letterSpacing: "0.06em",
-                color: "#fdfaf6",
-                background: "linear-gradient(90deg, #b58b54, #8b6131)",
+                color: "#F8F5F0",
+                background: "linear-gradient(90deg, #C79A5B, #8b6131)",
                 padding: "5px 10px",
                 borderRadius: 999,
                 animation: "stampInOut 2.4s ease forwards",
@@ -452,7 +452,7 @@ export default function Home() {
           >
             <defs>
               <linearGradient id="pathGold" x1="0%" y1="100%" x2="0%" y2="0%">
-                <stop offset="0%" stopColor="#b58b54" />
+                <stop offset="0%" stopColor="#C79A5B" />
                 <stop offset="100%" stopColor="#fdf0d5" />
               </linearGradient>
               <filter id="pathGlow" x="-100%" y="-100%" width="300%" height="300%">
@@ -552,7 +552,7 @@ export default function Home() {
                         width: 30,
                         height: 30,
                         background: "rgba(36,53,37,0.6)",
-                        color: "#eaddc5",
+                        color: "#E9DFCE",
                       }}
                     >
                       🔒
@@ -567,8 +567,8 @@ export default function Home() {
                         left: bleedRight ? 8 : undefined,
                         width: 26,
                         height: 26,
-                        background: "linear-gradient(135deg, #fdfaf6, #c69b5c)",
-                        color: "#243525",
+                        background: "linear-gradient(135deg, #F8F5F0, #C79A5B)",
+                        color: "#0F3D33",
                         boxShadow: "0 4px 10px rgba(0,0,0,0.35)",
                       }}
                     >
@@ -583,7 +583,7 @@ export default function Home() {
                         right: bleedRight ? undefined : 8,
                         left: bleedRight ? 8 : undefined,
                         fontSize: 8,
-                        color: "#fdfaf6",
+                        color: "#F8F5F0",
                         background: "rgba(36,53,37,0.75)",
                         padding: "3px 7px",
                         borderRadius: 999,
@@ -613,7 +613,7 @@ export default function Home() {
                 >
                   <span
                     className="leading-none tracking-tight"
-                    style={{ fontSize: 20, color: "#243525", fontWeight: 800 }}
+                    style={{ fontSize: 20, color: "#0F3D33", fontWeight: 800 }}
                   >
                     {stageNumbers[id]}
                   </span>
