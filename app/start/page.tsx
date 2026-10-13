@@ -7,7 +7,7 @@ import { ChevronRight, User, Users, BookOpen } from "lucide-react";
 
 // --- ÍCONES ELEGANTES ---
 const MaleIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#eaddc5]">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#E9DFCE]">
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
@@ -115,7 +115,7 @@ export default function StartPage() {
 
   return (
     <div 
-      className="relative h-[100dvh] w-full flex justify-center items-center bg-[#fdfaf6] text-[#243525] font-sans overflow-hidden"
+      className="relative h-[100dvh] w-full flex justify-center items-center bg-[#fdfaf6] text-[#0F3D33] font-sans overflow-hidden"
       style={{
         transform: isTransitioning ? 'scale(2.5)' : 'scale(1)',
         opacity: isTransitioning ? 0 : 1,
@@ -124,15 +124,15 @@ export default function StartPage() {
     >
       
       {/* Background Decorators (Ondas Elegantes) */}
-      <div className="absolute top-0 left-0 w-[120vw] h-[120vw] max-w-[700px] max-h-[700px] border-[1px] border-[#eaddc5]/30 rounded-full -translate-x-[40%] -translate-y-[40%] pointer-events-none transition-transform duration-1000"></div>
-      <div className="absolute bottom-0 right-0 w-[100vw] h-[100vw] max-w-[600px] max-h-[600px] border-[1px] border-[#eaddc5]/40 rounded-full translate-x-[40%] translate-y-[40%] pointer-events-none transition-transform duration-1000"></div>
+      <div className="absolute top-0 left-0 w-[120vw] h-[120vw] max-w-[700px] max-h-[700px] border-[1px] border-[#E9DFCE]/30 rounded-full -translate-x-[40%] -translate-y-[40%] pointer-events-none transition-transform duration-1000"></div>
+      <div className="absolute bottom-0 right-0 w-[100vw] h-[100vw] max-w-[600px] max-h-[600px] border-[1px] border-[#E9DFCE]/40 rounded-full translate-x-[40%] translate-y-[40%] pointer-events-none transition-transform duration-1000"></div>
 
       {/* --- PASSO 2: MODALIDADES --- */}
       {step === 2 && (
         <div className="w-full max-w-[420px] relative z-10 flex flex-col h-full max-h-[100dvh] px-6 py-10 animate-in fade-in slide-in-from-right-8 duration-500">
            <div className="mt-6 mb-8 px-2">
-             <h2 className="text-[32px] font-bold text-[#1f3020] leading-[1.05] tracking-tight font-serif drop-shadow-sm mb-3">Como você<br/>vai usar?</h2>
-             <p className="text-[14px] text-[#40543c] opacity-80">Selecione seu foco principal para personalizar a jornada e as ferramentas.</p>
+             <h2 className="text-[32px] font-bold text-[#0F3D33] leading-[1.05] tracking-tight font-serif drop-shadow-sm mb-3">Como você<br/>vai usar?</h2>
+             <p className="text-[14px] text-[#0F3D33] opacity-80">Selecione seu foco principal para personalizar a jornada e as ferramentas.</p>
            </div>
 
            <div className="flex flex-col gap-4 flex-1 px-2">
@@ -141,13 +141,13 @@ export default function StartPage() {
                 onClick={() => setSelectedMode('pessoal')} 
                 className={`p-5 rounded-[20px] border-2 cursor-pointer transition-all duration-300 ${
                   selectedMode === 'pessoal' 
-                  ? 'border-[#40543c] bg-gradient-to-br from-[#40543c] to-[#263724] text-white shadow-[0_15px_30px_rgba(38,55,36,0.25)]' 
-                  : 'border-[#eaddc5]/50 bg-white/80 text-[#40543c] hover:border-[#c69b5c]/50'
+                  ? 'border-[#0F3D33] bg-gradient-to-br from-[#0F3D33] to-[#263724] text-white shadow-[0_15px_30px_rgba(38,55,36,0.25)]' 
+                  : 'border-[#E9DFCE]/50 bg-white/80 text-[#0F3D33] hover:border-[#C79A5B]/50'
                 }`}
               >
                  <div className="flex items-center gap-5">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center ${selectedMode === 'pessoal' ? 'bg-white/10' : 'bg-[#f5ebd9]'}`}>
-                      <User size={22} className={selectedMode === 'pessoal' ? 'text-[#eaddc5]' : 'text-[#c69b5c]'} />
+                      <User size={22} className={selectedMode === 'pessoal' ? 'text-[#E9DFCE]' : 'text-[#C79A5B]'} />
                     </div>
                     <div className="flex-1 flex flex-col justify-center">
                       <span className="font-bold text-[17px] tracking-wide">Uso Pessoal</span>
@@ -157,7 +157,7 @@ export default function StartPage() {
               </div>
 
               {/* Discipulado 1:1 */}
-              <div className="p-5 rounded-[20px] border-2 border-[#eaddc5]/30 bg-white/40 text-[#40543c]/40 relative overflow-hidden cursor-not-allowed">
+              <div className="p-5 rounded-[20px] border-2 border-[#E9DFCE]/30 bg-white/40 text-[#0F3D33]/40 relative overflow-hidden cursor-not-allowed">
                  <div className="flex items-center gap-5 opacity-50">
                     <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                       <Users size={22} className="text-gray-400" />
@@ -171,7 +171,7 @@ export default function StartPage() {
               </div>
 
               {/* Pequeno Grupo */}
-              <div className="p-5 rounded-[20px] border-2 border-[#eaddc5]/30 bg-white/40 text-[#40543c]/40 relative overflow-hidden cursor-not-allowed">
+              <div className="p-5 rounded-[20px] border-2 border-[#E9DFCE]/30 bg-white/40 text-[#0F3D33]/40 relative overflow-hidden cursor-not-allowed">
                  <div className="flex items-center gap-5 opacity-50">
                     <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                       <Users size={22} className="text-gray-400" />
@@ -185,7 +185,7 @@ export default function StartPage() {
               </div>
 
               {/* Escola Bíblica */}
-              <div className="p-5 rounded-[20px] border-2 border-[#eaddc5]/30 bg-white/40 text-[#40543c]/40 relative overflow-hidden cursor-not-allowed">
+              <div className="p-5 rounded-[20px] border-2 border-[#E9DFCE]/30 bg-white/40 text-[#0F3D33]/40 relative overflow-hidden cursor-not-allowed">
                  <div className="flex items-center gap-5 opacity-50">
                     <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                       <BookOpen size={22} className="text-gray-400" />
@@ -202,7 +202,7 @@ export default function StartPage() {
            <div className="mt-8 px-2">
              <button 
                onClick={() => setStep(3)} 
-               className="w-full bg-[#243525] text-white py-4 rounded-[16px] font-bold shadow-[0_10px_20px_rgba(36,53,37,0.2)] active:scale-95 transition-all tracking-wide"
+               className="w-full bg-[#0F3D33] text-white py-4 rounded-[16px] font-bold shadow-[0_10px_20px_rgba(36,53,37,0.2)] active:scale-95 transition-all tracking-wide"
              >
                 Avançar
              </button>
@@ -213,10 +213,8 @@ export default function StartPage() {
       {/* --- PASSO 3: EMAIL --- */}
       {step === 3 && (
         <div className="w-full max-w-[420px] relative z-10 flex flex-col h-full max-h-[100dvh] px-8 py-12 justify-center animate-in fade-in slide-in-from-right-8 duration-500">
-           <div className="flex justify-center mb-8 opacity-60">
-              <User size={32} className="text-[#3b5238]" />
-           </div>
-           <h2 className="text-[30px] font-bold text-[#1f3020] leading-[1.1] tracking-tight font-serif text-center mb-6 drop-shadow-sm">
+           <div className="relative mx-auto mb-8 w-[205px] h-[68px] rota29-entrance"><Image src="/brand/rota29-logo.svg" alt="ROTA29" width={630} height={160} className="h-full w-full object-contain" priority /></div>
+           <h2 className="text-[30px] font-bold text-[#0F3D33] leading-[1.1] tracking-tight font-serif text-center mb-6 drop-shadow-sm">
              Acesse sua<br/>Jornada
            </h2>
            <p className="text-[15px] text-[#3b5238] leading-relaxed text-center px-2 mb-8">
@@ -229,7 +227,7 @@ export default function StartPage() {
               <button
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="w-full bg-white text-[#40543c] border-2 border-[#eaddc5]/50 hover:bg-[#fcf9f2] py-4 rounded-[16px] font-bold shadow-sm active:scale-95 transition-all flex justify-center items-center gap-3 disabled:opacity-50"
+                className="w-full bg-white text-[#0F3D33] border-2 border-[#E9DFCE]/50 hover:bg-[#fcf9f2] py-4 rounded-[16px] font-bold shadow-sm active:scale-95 transition-all flex justify-center items-center gap-3 disabled:opacity-50"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -248,22 +246,22 @@ export default function StartPage() {
         <div className="w-full max-w-[420px] relative z-10 flex flex-col items-center justify-center gap-7 h-full px-6 py-5 animate-in fade-in slide-in-from-right-8 duration-500 overflow-hidden">
 
           {/* LOGO */}
-          <div className="relative w-[240px] h-[140px] flex-shrink-0">
-            <Image src="/logo.png" alt="Talmidim Logo" fill className="object-contain scale-[1.8] origin-center drop-shadow-sm" priority />
+          <div className="relative w-[285px] h-[110px] flex-shrink-0 rota29-entrance">
+            <Image src="/brand/rota29-logo.svg" alt="ROTA29 — Discipulado no cotidiano" fill className="object-contain" priority />
           </div>
 
           {/* TIPOGRAFIA: Bem-vindo ao caminho */}
           <div className="text-center w-full flex-shrink-0">
-            <h1 className="text-[28px] font-bold text-[#1f3020] leading-[1.05] tracking-tight font-serif drop-shadow-sm">
+            <h1 className="text-[28px] font-bold text-[#0F3D33] leading-[1.05] tracking-tight font-serif drop-shadow-sm">
               Bem-vindo ao caminho
             </h1>
 
             <div className="flex items-center justify-center gap-2 mt-2 opacity-80">
-               <div className="h-[1px] w-6 bg-[#c69b5c]"></div>
+               <div className="h-[1px] w-6 bg-[#C79A5B]"></div>
                <p className="text-[10px] font-bold text-[#b58b54] uppercase tracking-[0.25em]">
                  Escolha seu perfil
                </p>
-               <div className="h-[1px] w-6 bg-[#c69b5c]"></div>
+               <div className="h-[1px] w-6 bg-[#C79A5B]"></div>
             </div>
           </div>
 
@@ -280,7 +278,7 @@ export default function StartPage() {
             {/* BOTÃO HOMEM */}
             <button
               onClick={() => selectProfile("male")}
-              className="w-full bg-gradient-to-b from-[#40543c] to-[#263724] hover:from-[#496245] hover:to-[#2e422c] text-left py-3.5 px-5 rounded-[18px] shadow-[0_15px_30px_rgba(38,55,36,0.3),inset_0_2px_2px_rgba(255,255,255,0.15)] transition-all active:scale-95 flex items-center gap-4 group"
+              className="w-full bg-gradient-to-b from-[#0F3D33] to-[#263724] hover:from-[#496245] hover:to-[#2e422c] text-left py-3.5 px-5 rounded-[18px] shadow-[0_15px_30px_rgba(38,55,36,0.3),inset_0_2px_2px_rgba(255,255,255,0.15)] transition-all active:scale-95 flex items-center gap-4 group"
             >
               <div className="w-[44px] h-[44px] rounded-full border border-[#d5b080]/30 bg-gradient-to-br from-[#2a3c28] to-[#1e2a1d] shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                  <MaleIcon />
@@ -297,7 +295,7 @@ export default function StartPage() {
             {/* BOTÃO MULHER */}
             <button
               onClick={() => selectProfile("female")}
-              className="w-full bg-gradient-to-b from-[#d5b080] to-[#b38a53] hover:from-[#dfba88] hover:to-[#c69b5c] text-left py-3.5 px-5 rounded-[18px] shadow-[0_15px_30px_rgba(179,138,83,0.3),inset_0_2px_2px_rgba(255,255,255,0.3)] transition-all active:scale-95 flex items-center gap-4 group"
+              className="w-full bg-gradient-to-b from-[#d5b080] to-[#b38a53] hover:from-[#dfba88] hover:to-[#C79A5B] text-left py-3.5 px-5 rounded-[18px] shadow-[0_15px_30px_rgba(179,138,83,0.3),inset_0_2px_2px_rgba(255,255,255,0.3)] transition-all active:scale-95 flex items-center gap-4 group"
             >
               <div className="w-[44px] h-[44px] rounded-full border border-white/40 bg-gradient-to-br from-[#c69d66] to-[#a67c4b] shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                  <FemaleIcon />
