@@ -2,10 +2,10 @@
 import {useCallback,useEffect,useState} from "react";
 
 // Etapa 1: abertura do ROTA29, ANTES do login.
-// Use o vídeo original enviado em public/brand/rota29-splash.mp4;
-// enquanto o arquivo não estiver publicado, exiba a arte de marca.
+// Use o vídeo original enviado em public/brand/Splash Rota29.mp4;
+// O caminho público preserva as maiúsculas e codifica o espaço do arquivo.
 const KEY="rota29-splash-seen";
-const VIDEO_PATH="/brand/rota29-splash.mp4";
+const VIDEO_PATH="/brand/Splash%20Rota29.mp4";
 export default function SplashScreen(){
   const [show,setShow]=useState(false);
   const [ready,setReady]=useState(false);
