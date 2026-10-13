@@ -17,11 +17,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://rota29-piloto.vercel.app"),
   title: { default: "ROTA29 | Discipulado no cotidiano", template: "%s | ROTA29" },
   description: "ROTA29 — formação cristã para a vida real. Discipulado no cotidiano.",
   applicationName: "ROTA29",
   icons: { icon: "/brand/rota29-icon.svg", shortcut: "/brand/rota29-icon.svg", apple: "/brand/rota29-icon.svg" },
-  openGraph: { title: "ROTA29", siteName: "ROTA29", description: "Discipulado no cotidiano", type: "website" },
+  openGraph: {
+    type: "website", locale: "pt_BR",
+    title: "ROTA29 — Discipulado no cotidiano",
+    description: "A jornada de discipulado continua. Conheça o ROTA29.",
+    url: "https://rota29-piloto.vercel.app", siteName: "ROTA29",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630,
+      alt: "Logo ROTA29 — Discipulado no cotidiano" }],
+  },
+  twitter: { card: "summary_large_image",
+    title: "ROTA29 — Discipulado no cotidiano",
+    images: ["/opengraph-image"] },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
