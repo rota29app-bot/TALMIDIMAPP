@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import SplashScreen from "./components/SplashScreen";
-import AdminTestBar from "./components/AdminTestBar";
-import RegisterPWA from "./components/RegisterPWA";
-import PilotActivity from "./components/PilotActivity";
 import { ThemeProvider } from "./components/ThemeProvider";
 
 const geistSans = Geist({
@@ -61,10 +57,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="bg-black text-white">
-        <RegisterPWA />
-        <PilotActivity />
-        <SplashScreen />
-        <ThemeProvider><AdminTestBar />{children}</ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
