@@ -75,7 +75,7 @@ const labels:Record<string,Info>={
 export default async function PilotStatus(){
  const db=await createClient();
  const {data:{user},error:userError}=await db.auth.getUser();
- let status=userError?"error":user?"unselected":"unauthenticated";
+ let status=!user?"unauthenticated":userError?"error":"unselected";
  if(user && !userError){
   const {data,error}=await db.rpc("rota29_pilot_access");
   status=error?"error":String(data?.status||"unselected");
