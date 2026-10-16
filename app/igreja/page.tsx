@@ -1,5 +1,5 @@
 "use client";
-import {useCallback,useEffect,useState,type FormEvent} from "react";
+import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
 import {Building2,Copy,Users,ShieldCheck,Clock3} from "lucide-react";
@@ -22,6 +22,18 @@ export default function RegistroIgreja(){
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
  const [code,setCode]=useState("");
+ const formRef=useRef<HTMLFormElement|null>(null);
+ useEffect(()=>{
+  if(!mode)return;
+  const handle=window.setTimeout(()=>{
+   formRef.current?.scrollIntoView({behavior:"smooth",block:"start"});
+  },60);
+  return()=>window.clearTimeout(handle);
+ },[mode]);
+ const chooseMode=(next:"pastor"|"membro")=>{
+  setError("");setNotice("");
+  setMode(previous=>previous===next?null:next);
+ };
  const load=useCallback(async()=>{
   const db=createClient();
   const {data:{user}}=await db.auth.getUser();
@@ -74,14 +86,6 @@ export default function RegistroIgreja(){
    <h1 className="font-serif font-bold text-3xl">Acesso por igreja</h1>
    <p className="text-sm">Discipulado no cotidiano · Piloto institucional</p>
   </header>
-  <section className="rounded-2xl border border-[#C79A5B]/40 bg-white p-5 space-y-2 text-sm">
-   <div className="flex items-center gap-2 font-bold text-base"><ShieldCheck size={19}/> Participação autorizada</div>
-   <p>1. A coordenação aprova o cadastro da igreja.</p>
-   <p>2. O pastor compartilha o código oficial com seus participantes.</p>
-   <p>3. Cada participante entra com Google, informa o código e aguarda aprovação individual.</p>
-   <p>4. Somente o pastor da igreja libera o acesso à jornada.</p>
-   <p className="text-xs text-[#547266]">O acesso individual sem igreja está desativado no piloto.</p>
-  </section>
   {error&&<p role="alert" className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-700 text-sm">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-[#0F3D33] text-sm">{notice}</p>}
   {church?.is_admin?<section className="rounded-2xl bg-white p-5 space-y-3"><h2 className="text-xl font-bold">Coordenação</h2><button onClick={()=>router.push("/admin")} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold">Abrir painel administrativo</button></section>:
@@ -112,26 +116,35 @@ export default function RegistroIgreja(){
    church?.role==="pastor"?<section className="rounded-2xl bg-white p-5 space-y-2"><h2 className="text-xl font-bold">Conta pastoral anterior</h2><p className="text-sm">Para participar do novo piloto institucional, solicite à coordenação a atualização do seu vínculo.</p></section>:
    <section className="space-y-3">
     <div className="grid grid-cols-2 gap-3">
-     <button type="button" onClick={()=>setMode("pastor")} className="rounded-2xl bg-white border p-4 text-left space-y-2"><Building2/><strong className="block">Sou pastor</strong><span className="text-xs">Cadastrar igreja</span></button>
-     <button type="button" onClick={()=>setMode("membro")} className="rounded-2xl bg-white border p-4 text-left space-y-2"><Users/><strong className="block">Sou participante</strong><span className="text-xs">Solicitar entrada com código</span></button>
+     <button type="button" aria-pressed={mode==="pastor"} onClick={()=>chooseMode("pastor")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="pastor"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Building2/><strong className="block">Sou pastor</strong><span className="text-xs">Abrir o formulário de cadastro</span></button>
+     <button type="button" aria-pressed={mode==="membro"} onClick={()=>chooseMode("membro")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="membro"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Users/><strong className="block">Sou participante</strong><span className="text-xs">Informar o código do pastor</span></button>
     </div>
-    {mode==="pastor"&&<form onSubmit={register} className="bg-white rounded-2xl border p-5 space-y-4">
-     <h2 className="text-xl font-bold">Cadastro de igreja</h2>
+    {mode==="pastor"&&<form ref={formRef} onSubmit={register} id="rota29-form-pastor" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
+     <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Cadastro de igreja</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
+     <p className="text-sm">Preencha os dados abaixo e toque em <strong>Enviar para aprovação</strong>. Só depois disso a coordenação receberá sua solicitação.</p>
      <label className="block text-sm">Nome oficial<input name="nome" className={input} minLength={4} maxLength={130} required/></label>
      <div className="grid grid-cols-[1fr_80px] gap-2"><label className="block text-sm">Cidade<input name="cidade" className={input} maxLength={90} required/></label><label className="block text-sm">UF<input name="estado" className={input} pattern="[A-Za-z]{2}" minLength={2} maxLength={2} required/></label></div>
      <label className="block text-sm">Pastor responsável<input name="pastor" className={input} maxLength={130} required/></label>
      <label className="block text-sm">E-mail ou telefone da igreja<input name="contato" className={input} maxLength={150} required/></label>
      <label className="block text-sm">Participantes previstos (até 10 além do pastor)<input name="convidados" type="number" min={0} max={10} required className={input}/></label>
      <label className="flex gap-2 text-sm"><input type="checkbox" name="aceite" required/>Confirmo a autorização institucional e o aviso de tratamento dos dados do piloto.</label>
-     <button disabled={saving} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold">{saving?"Enviando…":"Enviar para aprovação"}</button>
+     <button type="submit" disabled={saving} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Enviar cadastro da igreja"}</button>
     </form>}
-    {mode==="membro"&&<form onSubmit={requestJoin} className="bg-white rounded-2xl border p-5 space-y-4">
-     <h2 className="text-xl font-bold">Código do pastor</h2>
+    {mode==="membro"&&<form ref={formRef} onSubmit={requestJoin} id="rota29-form-membro" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
+     <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Código do pastor</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
      <p className="text-sm">Digite o código de 16 caracteres enviado pelo pastor. O código é uma solicitação de entrada, não uma autorização automática.</p>
      <input className={input+" font-mono tracking-widest"} aria-label="Código de convite" value={code} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g,""))} minLength={16} maxLength={16} required/>
-     <button disabled={saving||code.length!==16} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold">{saving?"Enviando…":"Solicitar aprovação pastoral"}</button>
+     <button type="submit" disabled={saving||code.length!==16} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Solicitar aprovação pastoral"}</button>
     </form>}
    </section>}
+  <section className="rounded-2xl border border-[#C79A5B]/40 bg-white p-5 space-y-2 text-sm">
+   <div className="flex items-center gap-2 font-bold text-base"><ShieldCheck size={19}/> Participação autorizada</div>
+   <p>1. A coordenação aprova o cadastro da igreja.</p>
+   <p>2. O pastor compartilha o código oficial com seus participantes.</p>
+   <p>3. Cada participante entra com Google, informa o código e aguarda aprovação individual.</p>
+   <p>4. Somente o pastor da igreja libera o acesso à jornada.</p>
+   <p className="text-xs text-[#547266]">O acesso individual sem igreja está desativado no piloto.</p>
+  </section>
   <button type="button" className="block mx-auto text-xs underline" onClick={async()=>{await createClient().auth.signOut({scope:"local"});router.replace("/start");}}>Sair da conta</button>
   <p className="text-center text-xs text-[#547266]">ROTA29 · Discipulado no cotidiano</p>
  </div></main>;

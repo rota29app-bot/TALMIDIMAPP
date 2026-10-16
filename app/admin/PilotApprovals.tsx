@@ -13,7 +13,12 @@ export default function PilotApprovals(){
   else{setChurches(data||[]);setError("");}
   setLoading(false);
  },[]);
- useEffect(()=>{let alive=true;void Promise.resolve().then(()=>{if(alive)void refresh();});return()=>{alive=false;};},[refresh]);
+ useEffect(()=>{
+  void refresh();
+  // Solicitações novas aparecem sem precisar atualizar a página.
+  const timer=window.setInterval(()=>{if(document.visibilityState==="visible")void refresh();},30000);
+  return()=>window.clearInterval(timer);
+ },[refresh]);
  const approve=async(id:string,enabled:boolean)=>{
   if(saving)return;setSaving(id);setError("");
   const {error:e}=await createClient().rpc("rota29_admin_approve_church",{p_igreja:id,p_approve:enabled});
@@ -21,9 +26,9 @@ export default function PilotApprovals(){
   setSaving(null);
  };
  return <section className="mx-6 mt-5 rounded-2xl border border-accent/30 bg-bg-card p-4 space-y-3">
-  <h2 className="font-bold text-lg">Liberar igrejas para o piloto</h2>
-  <p className="text-sm text-text-muted">O pastor cadastra a igreja. Você confere os dados e aprova a entrada. Cada igreja tem 10 vagas de participantes, além do pastor. Período: 15/10 a 13/11/2026.</p>
-  {loading?<p role="status">Carregando…</p>:churches.length===0?<p className="text-sm">Nenhuma igreja solicitou entrada ainda. As contas antigas não participam deste piloto.</p>:churches.map(c=><article key={c.igreja_id} className="rounded-xl border border-accent/20 p-4 space-y-2">
+  <h2 className="font-bold text-lg">Aprovar cadastro das igrejas</h2>
+  <p className="text-sm text-text-muted">Quando o pastor concluir e enviar o formulário, a igreja aparecerá nesta lista. Confira os dados e aprove ou recuse. Cada igreja tem 10 vagas de participantes, além do pastor. Período: 15/10 a 20/11/2026.</p>
+  {loading?<p role="status">Carregando…</p>:churches.length===0?<p className="text-sm">Nenhuma solicitação recebida. O pastor precisa preencher o formulário e tocar em “Enviar cadastro da igreja”; somente entrar com Google ou escolher “Sou pastor” não envia o cadastro.</p>:churches.map(c=><article key={c.igreja_id} className="rounded-xl border border-accent/20 p-4 space-y-2">
    <h3 className="font-bold">{c.nome}</h3><p className="text-sm">{c.pastor_nome} · {c.contato}</p>
    <p className="text-sm">{c.members}/{c.member_limit} vagas · {c.approval_status==="approved"?"Liberada":c.approval_status==="suspended"?"Suspensa":"Aguardando aprovação"}</p>
    <button type="button" disabled={saving!==null} onClick={()=>void approve(c.igreja_id,c.approval_status!=="approved")}
@@ -32,6 +37,6 @@ export default function PilotApprovals(){
    </button>
   </article>)}
   {error&&<p role="alert" className="text-red-600 text-sm">{error}</p>}
-  <button type="button" className="underline text-sm" onClick={()=>void refresh()}>Atualizar solicitações</button>
+  <button type="button" className="underline text-sm" onClick={()=>void refresh()}>Atualizar lista de igrejas</button>
  </section>;
 }
