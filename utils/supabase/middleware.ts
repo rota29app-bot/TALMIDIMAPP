@@ -33,7 +33,7 @@ export async function updateSession(request: NextRequest) {
 
   // Array of public routes
   const publicRoutes = [
-    '/start', '/auth/callback', '/splash.mp4', '/splash_v2.mp4', '/vinheta.mp4',
+    '/start', '/auth/callback', '/pilot-status', '/splash.mp4', '/splash_v2.mp4', '/vinheta.mp4',
     '/sw.js', '/manifest.json', '/offline.html', '/pwa-icon-192.png',
     '/pwa-icon-512.png', '/pwa-icon-180.png',
   ];
@@ -53,11 +53,15 @@ export async function updateSession(request: NextRequest) {
 
   // O servidor confere prazo, aprovação e encerramento em cada rota da jornada.
   const journeyRoutes = ['/onboarding','/radar','/pdd','/stage','/hoje','/diary',
-    '/dashboard','/report','/validate','/marco','/pastor','/settings','/congratulations'];
+    '/dashboard','/report','/validate','/marco','/pastor','/settings','/congratulations','/admin'];
   const journey = pathname === '/' || journeyRoutes.some(route => pathname === route || pathname.startsWith(route+'/'));
   if (user && journey) {
     const { data: access, error } = await supabase.rpc('rota29_pilot_access');
-    if (error || !access?.allowed) {
+    // A primeira insígnia encerra a jornada, mas a tela de celebração
+    // precisa continuar acessível ao próprio participante autenticado.
+    const canSeeFinalBadge = !error && access?.status === 'completed'
+      && (pathname === '/congratulations' || pathname.startsWith('/congratulations/'));
+    if (error || (!access?.allowed && !canSeeFinalBadge)) {
       const url = request.nextUrl.clone();
       url.pathname = '/pilot-status'; url.search = '';
       const redirect = NextResponse.redirect(url);
