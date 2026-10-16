@@ -138,9 +138,11 @@ export default function PainelAdmin() {
 
   const carregarTudo = useCallback(async () => {
     setErro(null);
-    const [overview, allMembers] = await Promise.all([
+    const [overview, allMembers, pilotChurches, authorizedMembers] = await Promise.all([
       supabase.rpc("admin_get_overview"),
       supabase.rpc("admin_get_all_members"),
+      supabase.rpc("rota29_admin_pilot_churches"),
+      supabase.rpc("rota29_admin_authorized_member_ids"),
     ]);
 
     if (overview.error) {
@@ -152,12 +154,21 @@ export default function PainelAdmin() {
       setErro("Não foi possível carregar as igrejas.");
       return;
     }
-    setIgrejas((overview.data || []).filter((i: Igreja) => !i.nome.startsWith("Arquivo técnico")));
-
+    if (pilotChurches.error || authorizedMembers.error) {
+      setErro("Não foi possível confirmar as autorizações das igrejas e participantes. Nenhum resultado foi exibido por segurança.");
+      setIgrejas([]);
+      setMembros([]);
+      return;
+    }
+    // Login Google cria uma conta técnica, mas não cria inscrição da igreja.
+    const pilotChurchIds = new Set((pilotChurches.data || []).map((c: {igreja_id:string})=>c.igreja_id));
+    const approvedIds = new Set((authorizedMembers.data || []).map((m: {user_id:string})=>m.user_id));
+    setIgrejas((overview.data || []).filter((i: Igreja) => pilotChurchIds.has(i.igreja_id)));
     if (allMembers.error) {
-      setErro("Não foi possível carregar os participantes. Atualize a página para tentar novamente.");
+      setErro("Não foi possível carregar os participantes autorizados. Atualize a página.");
+      setMembros([]);
     } else {
-      setMembros((allMembers.data || []).filter((m: Membro) => !m.igreja_nome?.startsWith("Arquivo técnico")));
+      setMembros((allMembers.data || []).filter((m: Membro) => approvedIds.has(m.user_id) && pilotChurchIds.has(m.igreja_id || "")));
     }
   }, [supabase, router]);
 
@@ -332,7 +343,7 @@ export default function PainelAdmin() {
           className="mt-4 w-full rounded-xl bg-[#0F3D33] px-5 py-4 font-bold text-[#E9DFCE] border border-[#C79A5B] disabled:opacity-50">
           {openingApp ? "Abrindo app…" : "Usar o app"}
         </button>
-        <div className="mt-3 flex gap-3 text-xs"><span className="font-bold">Básico: uso individual</span><span className="font-bold">Liderança: igreja e painel pastoral</span></div>
+        <p className="mt-3 text-xs text-text-muted">Somente igrejas cadastradas e participantes aprovados pelo pastor entram nas listas institucionais. O login Google, sozinho, não autoriza a participação.</p>
       </section>
       <PilotApprovals />
       {/* Abas */}
@@ -364,10 +375,11 @@ export default function PainelAdmin() {
           <div>
             <h2 className="text-[20px] font-bold font-serif text-text-main mb-1">Visão Geral do Sistema</h2>
             <p className="text-text-muted text-[13px] mb-4">
-              {igrejas.length} {igrejas.length === 1 ? "igreja cadastrada" : "igrejas cadastradas"} · {totalMembros} membros · {totalPastores} pastores
+              {igrejas.length} {igrejas.length === 1 ? "igreja cadastrada" : "igrejas cadastradas"} · {totalMembros} participantes vinculados · {totalPastores} pastores
             </p>
           </div>
 
+          <p className="text-xs text-text-muted">Contas Google sem cadastro institucional não entram nesta relação.</p>
           {/* Lista de igrejas */}
           <div className="space-y-3">
             {igrejas.map((i) => (
@@ -490,7 +502,7 @@ export default function PainelAdmin() {
           <div>
             <h2 className="text-[20px] font-bold font-serif text-text-main mb-1">Analytics Cruzado</h2>
             <p className="text-text-muted text-[13px]">
-              Filtre e cruze os dados de todas as igrejas ao mesmo tempo.
+              Apenas participantes de igrejas do piloto com autorização pastoral ativa. Contas Google sem igreja e contas anteriores não são participantes do piloto.
             </p>
             <button className="underline text-sm mt-3" onClick={() => download([
               ["participante_id", "igreja_id", "igreja", "nome", "email", "papel", "cadastro", "ultima_atividade", "estacao_liberada", "dia"],
