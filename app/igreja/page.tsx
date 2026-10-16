@@ -15,6 +15,7 @@ const input="w-full border border-[#C79A5B]/60 rounded-xl bg-white px-4 py-3 tex
 export default function RegistroIgreja(){
  const router=useRouter();
  const [church,setChurch]=useState<Church|null>(null);
+ const [currentEmail,setCurrentEmail]=useState("");
  const [access,setAccess]=useState<Access|null>(null);
  const [mode,setMode]=useState<"pastor"|"membro"|null>(null);
  const [loading,setLoading]=useState(true);
@@ -32,12 +33,13 @@ export default function RegistroIgreja(){
  },[mode]);
  const chooseMode=(next:"pastor"|"membro")=>{
   setError("");setNotice("");
-  setMode(previous=>previous===next?null:next);
+  setMode(next);
  };
  const load=useCallback(async()=>{
   const db=createClient();
   const {data:{user}}=await db.auth.getUser();
   if(!user){router.replace("/start");return;}
+  setCurrentEmail(user.email||"");
   const [membership,permission]=await Promise.all([db.rpc("pilot_my_church"),db.rpc("rota29_pilot_access")]);
   if(membership.error||permission.error){
    setError("Não foi possível verificar a sua autorização. Tente novamente.");
@@ -65,6 +67,7 @@ export default function RegistroIgreja(){
   if(e){setError(e.message);return;}
   setNotice("Cadastro recebido. A coordenação precisa aprovar sua igreja antes de liberar convites.");
   await load();
+  window.scrollTo({top:0,behavior:'smooth'});
  };
  const requestJoin=async(ev:FormEvent<HTMLFormElement>)=>{
   ev.preventDefault();if(saving)return;
@@ -75,6 +78,7 @@ export default function RegistroIgreja(){
   setChurch(prev=>({...prev,pending_igreja:data?.nome||null,approval_status:data?.status||"pending"}));
   setNotice("Solicitação enviada. Aguarde a aprovação expressa do pastor. O código não libera acesso automaticamente.");
   await load();
+  window.scrollTo({top:0,behavior:'smooth'});
  };
  if(loading)return <main className="min-h-screen grid place-items-center bg-[#E9DFCE] text-[#0F3D33]">Conferindo autorização…</main>;
  const pastor=church?.role==="pastor"&&church.pilot;
@@ -85,6 +89,7 @@ export default function RegistroIgreja(){
    <img src="/brand/rota29-logo.svg" alt="ROTA29" className="mx-auto w-40 h-auto"/>
    <h1 className="font-serif font-bold text-3xl">Acesso por igreja</h1>
    <p className="text-sm">Discipulado no cotidiano · Piloto institucional</p>
+   {currentEmail&&<p className="text-xs break-all text-[#547266]">Conta Google: <strong>{currentEmail}</strong></p>}
   </header>
   {error&&<p role="alert" className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-700 text-sm">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-[#0F3D33] text-sm">{notice}</p>}
@@ -113,27 +118,30 @@ export default function RegistroIgreja(){
     <p className="text-sm">Seu login já foi identificado, mas a jornada permanecerá bloqueada até a aprovação do pastor.</p>
     <button type="button" className="w-full rounded-xl border p-3 font-bold" onClick={()=>void load()}>Verificar aprovação</button>
    </section>:
-   church?.role==="pastor"?<section className="rounded-2xl bg-white p-5 space-y-2"><h2 className="text-xl font-bold">Conta pastoral anterior</h2><p className="text-sm">Para participar do novo piloto institucional, solicite à coordenação a atualização do seu vínculo.</p></section>:
    <section className="space-y-3">
-    <div className="grid grid-cols-2 gap-3">
+    {church?.role==="pastor"&&<p className="rounded-xl bg-white border border-[#C79A5B]/50 p-4 text-sm">Você já usou uma conta pastoral anteriormente. Para participar do novo piloto, cadastre sua igreja aqui. Sua conta Google e seu histórico permanecem preservados.</p>}
+    <p className="text-sm font-semibold">Qual é a sua participação?</p>
+    <div className={church?.role==="pastor"?"grid grid-cols-1 gap-3":"grid grid-cols-2 gap-3"}>
      <button type="button" aria-pressed={mode==="pastor"} onClick={()=>chooseMode("pastor")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="pastor"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Building2/><strong className="block">Sou pastor</strong><span className="text-xs">Abrir o formulário de cadastro</span></button>
-     <button type="button" aria-pressed={mode==="membro"} onClick={()=>chooseMode("membro")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="membro"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Users/><strong className="block">Sou participante</strong><span className="text-xs">Informar o código do pastor</span></button>
+     {church?.role!=="pastor"&&<button type="button" aria-pressed={mode==="membro"} onClick={()=>chooseMode("membro")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="membro"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Users/><strong className="block">Sou participante</strong><span className="text-xs">Informar o código do pastor</span></button>}
     </div>
     {mode==="pastor"&&<form ref={formRef} onSubmit={register} id="rota29-form-pastor" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
-     <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Cadastro de igreja</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
-     <p className="text-sm">Preencha os dados abaixo e toque em <strong>Enviar para aprovação</strong>. Só depois disso a coordenação receberá sua solicitação.</p>
+     <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Cadastrar minha igreja</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
+     <p className="text-sm">Preencha os dados abaixo e toque em <strong>Enviar cadastro da igreja</strong>. Só depois disso a coordenação receberá sua solicitação.</p>
      <label className="block text-sm">Nome oficial<input name="nome" className={input} minLength={4} maxLength={130} required/></label>
      <div className="grid grid-cols-[1fr_80px] gap-2"><label className="block text-sm">Cidade<input name="cidade" className={input} maxLength={90} required/></label><label className="block text-sm">UF<input name="estado" className={input} pattern="[A-Za-z]{2}" minLength={2} maxLength={2} required/></label></div>
      <label className="block text-sm">Pastor responsável<input name="pastor" className={input} maxLength={130} required/></label>
      <label className="block text-sm">E-mail ou telefone da igreja<input name="contato" className={input} maxLength={150} required/></label>
      <label className="block text-sm">Participantes previstos (até 10 além do pastor)<input name="convidados" type="number" min={0} max={10} required className={input}/></label>
      <label className="flex gap-2 text-sm"><input type="checkbox" name="aceite" required/>Confirmo a autorização institucional e o aviso de tratamento dos dados do piloto.</label>
+     {error&&<p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</p>}
      <button type="submit" disabled={saving} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Enviar cadastro da igreja"}</button>
     </form>}
     {mode==="membro"&&<form ref={formRef} onSubmit={requestJoin} id="rota29-form-membro" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
      <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Código do pastor</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
      <p className="text-sm">Digite o código de 16 caracteres enviado pelo pastor. O código é uma solicitação de entrada, não uma autorização automática.</p>
      <input className={input+" font-mono tracking-widest"} aria-label="Código de convite" value={code} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g,""))} minLength={16} maxLength={16} required/>
+     {error&&<p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</p>}
      <button type="submit" disabled={saving||code.length!==16} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Solicitar aprovação pastoral"}</button>
     </form>}
    </section>}

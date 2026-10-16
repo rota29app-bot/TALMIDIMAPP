@@ -73,8 +73,8 @@ export default function StartPage() {
         return;
       }
       const params = new URLSearchParams(window.location.search);
-      const profile = user.user_metadata?.profile;
-      // A função define o destino ANTES da apresentação e da escolha de gênero.
+      // Primeiro identifique a igreja e o pastor, sem exigir que a pessoa
+      // escolha gênero, assista vídeos ou conclua etapas pessoais antes.
       const { data: access, error: accessError } = await db.rpc("pilot_my_church");
       if (!active) return;
       if (accessError || !access) {
@@ -89,6 +89,16 @@ export default function StartPage() {
         router.replace("/admin");
         return;
       }
+      // Quem ainda não tem igreja aprovada precisa apenas escolher
+      // "Sou pastor" ou "Sou participante". O login não libera a jornada.
+      const hasApprovedChurchMembership =
+        access.role === "membro" && access.pilot && !!access.igreja_id;
+      if (!hasApprovedChurchMembership) {
+        router.replace("/igreja");
+        return;
+      }
+      // A escolha de perfil pertence à jornada, após aprovação pastoral.
+      const profile = user.user_metadata?.profile;
       if (profile === "male" || profile === "female") {
         localStorage.setItem("talmidim-profile", profile);
         router.replace("/entrada");
@@ -103,7 +113,7 @@ export default function StartPage() {
   const finishWalkingVideo = () => {
     // A caminhada encerra a entrada; jamais pede outro login.
     // Novo membro/pastor escolhe sua modalidade institucional antes de iniciar Radar.
-    router.replace(adminJourney ? "/onboarding" : "/igreja");
+    router.replace(adminJourney ? "/onboarding" : "/entrada");
   };
 
   const handleGoogleSignIn = async () => {
