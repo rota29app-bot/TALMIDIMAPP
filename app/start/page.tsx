@@ -85,8 +85,8 @@ export default function StartPage() {
       if (params.get("after_auth") === "1") window.history.replaceState(null, "", "/start");
       const testingAsAdmin = access.is_admin && isAdminTestMode(user.id);
       setAdminJourney(!!testingAsAdmin);
-      if (!testingAsAdmin && (access.is_admin || access.role === "pastor")) {
-        router.replace(access.is_admin ? "/admin" : "/pastor");
+      if (!testingAsAdmin && access.is_admin) {
+        router.replace("/admin");
         return;
       }
       if (profile === "male" || profile === "female") {

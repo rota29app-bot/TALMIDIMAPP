@@ -2,6 +2,7 @@
 import {useCallback,useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
+import PastoralApprovals from "./PastoralApprovals";
 import {Building2,Users,TrendingUp,CalendarDays,BellRing,FileDown,ArrowRight,ShieldCheck,RefreshCw,CheckCircle2} from "lucide-react";
 
 export type PastoralMember={
@@ -103,6 +104,7 @@ export default function PastorDashboard(){
     <button aria-label="Atualizar indicadores" onClick={()=>void refresh()}><RefreshCw size={20}/></button>
    </header>
    <div className="mx-auto max-w-5xl px-5 py-7 space-y-7">
+     <PastoralApprovals/>
      <div className="rounded-2xl border border-accent/30 bg-bg-card p-5 space-y-2">
        <div className="flex gap-2 items-center"><ShieldCheck size={20}/><strong>Plano Liderança · {data.license_status==="pilot"?"Piloto":data.license_status}</strong></div>
        <p className="text-sm text-text-muted">Acompanhamento exclusivo dos membros vinculados à sua igreja. O Radar não mede valor espiritual: os indicadores servem ao cuidado, não à cobrança.</p>

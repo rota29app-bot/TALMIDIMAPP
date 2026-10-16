@@ -16,7 +16,7 @@ export default function PilotStatus() {
     </div>
     <h1 className="text-2xl font-serif font-bold">Acesso temporariamente suspenso</h1>
     <p className="text-[#36534b] leading-relaxed">Por orientação da coordenação, os acessos, cadastros e atividades do piloto ROTA29 estão bloqueados para revisão.</p>
-    <p className="text-sm font-semibold">A previsão é reavaliar a liberação amanhã, 16 de outubro. A reabertura depende de autorização da coordenação.</p>
+    <p className="text-sm font-semibold">O prazo do piloto foi ampliado provisoriamente até 20 de novembro de 2026. A reabertura depende de autorização expressa da coordenação.</p>
     <p className="text-xs text-[#58746a]">Nenhum progresso foi apagado. Aguarde a comunicação oficial antes de tentar entrar novamente.</p>
     <div className="pt-4 border-t border-[#C79A5B]/25 text-xs tracking-wider uppercase">ROTA29 · Discipulado no cotidiano</div>
    </section>
