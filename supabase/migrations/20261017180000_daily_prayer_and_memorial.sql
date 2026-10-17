@@ -265,3 +265,6 @@ grant execute on function public.rota29_set_daily_schedule(time,text),
 -- A função v2 é interna; não permitir que o cliente salte validações de práticas.
 -- Desativação da função anterior, somente após implantar a interface nova:
 revoke all on function public.pilot_complete_day(text,integer) from public,anon,authenticated;
+
+-- O preview da superadministração usa um RPC separado com validação interna de papel.
+grant execute on function public.rota29_admin_complete_day(text,integer) to authenticated;

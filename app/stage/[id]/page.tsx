@@ -77,6 +77,14 @@ function StagePageContent() {
   const [memGratidao, setMemGratidao] = useState(["", "", ""]);
   const [memoriaSaved, setMemoriaSaved] = useState(false);
   const [dayMemorialSaved,setDayMemorialSaved] = useState(false);
+  const [adminPreview,setAdminPreview] = useState(false);
+  useEffect(()=>{
+    let live=true;
+    void createClient().rpc("pilot_my_church").then(({data})=>{
+      if(live)setAdminPreview(data?.is_admin===true);
+    });
+    return()=>{live=false;};
+  },[]);
 
   // Memorial da Consolidação (ET-009 v2, Dia 6): 3 campos próprios do
   // Diário da Consolidação — aprendizado, prática e oração de forças.
@@ -164,7 +172,7 @@ function StagePageContent() {
     setContentRead(newValue);
   };
 
-  const canComplete = contentRead && practicesDone && scoreDone && dayMemorialSaved;
+  const canComplete = contentRead && practicesDone && scoreDone && (dayMemorialSaved || adminPreview);
   useEffect(()=>{
     let mounted=true;
     setDayMemorialSaved(false);
@@ -174,6 +182,16 @@ function StagePageContent() {
     return()=>{mounted=false;};
   },[id,dayIndex]);
   const saveMemorial=async(vivido:string,falou:string):Promise<boolean>=>{
+    if(adminPreview){
+      const {data:{user}}=await supabase.auth.getUser();
+      if(!user)return false;
+      const {error}=await supabase.from("user_diary").insert({
+        user_id:user.id,vivido_hoje:vivido||"—",deus_falou:falou||"—"
+      });
+      if(error){alert("Falha no Memorial do teste administrativo: "+error.message);return false;}
+      setDayMemorialSaved(true);
+      return true;
+    }
     const {error}=await supabase.rpc("rota29_save_daily_memorial",{
       p_stage:id,p_day:dayIndex,p_vivido:vivido,p_deus_falou:falou
     });
@@ -1072,8 +1090,8 @@ function StagePageContent() {
                 )}
               </div>
 
-            <DailyMemorialForm stage={id} day={dayIndex} saved={dayMemorialSaved}
-              onSaved={()=>{setDayMemorialSaved(true);setDiarioSaved(true);setMemoriaSaved(true);}}/>
+            {!adminPreview && <DailyMemorialForm stage={id} day={dayIndex} saved={dayMemorialSaved}
+              onSaved={()=>{setDayMemorialSaved(true);setDiarioSaved(true);setMemoriaSaved(true);}}/>}
 
             {/* BOTÃO DE CONCLUIR — sempre visível ao final do fluxo único
                 (antes ficava escondido dependendo da aba; agora não tem
