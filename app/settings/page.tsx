@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, BellRing, Clock, Save, Info, Users, MapPin } from "lucide-react";
 import BottomNav from "../components/BottomNav";
+import DailyPrayerSettings from "../components/DailyPrayerSettings";
 import { createClient } from "../../utils/supabase/client";
 
 export default function SettingsPage() {
@@ -76,7 +77,7 @@ export default function SettingsPage() {
     
     if (result === "granted") {
       new Notification("Notificações Ativadas!", {
-        body: "Você receberá lembretes para sua jornada ROTA29.",
+        body: "Permissão concedida. Lembretes automáticos ainda dependem da configuração do serviço de envio.",
         icon: "/icons/icon-192x192.png"
       });
     }
@@ -140,6 +141,8 @@ export default function SettingsPage() {
             {isPastor && <button onClick={() => router.push("/pastor")} className="block w-full border border-accent/30 py-3 rounded-xl font-bold">Abrir painel pastoral</button>}
             {isPastor && <button onClick={() => router.push("/igreja")} className="block w-full border border-accent/30 py-3 rounded-xl font-bold">Copiar convite da minha igreja</button>}
           </div>}
+
+          {!isAdmin && !isPastor && <DailyPrayerSettings />}
 
           {/* Perfil: estado, cidade, idade */}
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">

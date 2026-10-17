@@ -16,7 +16,7 @@ export default function CompleteButton({ id, dayIndex, canComplete = true }:{
    const db=createClient();
    const {data:access,error:accessError}=await db.rpc("pilot_my_church");
    if(accessError)throw accessError;
-   const {data,error}=await db.rpc(access?.is_admin?"rota29_admin_complete_day":"pilot_complete_day",{p_stage:id,p_day:dayIndex});
+   const {data,error}=await db.rpc(access?.is_admin?"rota29_admin_complete_day":"rota29_complete_verified_day",{p_stage:id,p_day:dayIndex});
    if(error)throw error;
    localStorage.setItem("talmidim-day-"+id,String(data.day_index));
    if(data.milestone)localStorage.setItem("talmidim-progress",String(index+1));
