@@ -3,9 +3,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../utils/supabase/client";
+import { stationNumber } from "../../utils/progress";
+import { enableAdminTestMode, leaveAdminTestMode } from "../../utils/admin-test-mode";
+import PilotWorkspace, { download } from "./PilotWorkspace";
+import PilotApprovals from "./PilotApprovals";
 import {
   ArrowLeft,
-  ShieldCheck,
   Building2,
   Plus,
   UserPlus,
@@ -53,7 +56,7 @@ type Membro = {
   criado_em: string;
 };
 
-const TOTAL_ESTACOES = 7;
+const TOTAL_ESTACOES = 3;
 
 function formatarAtividade(dataIso: string | null): string {
   if (!dataIso) return "Nunca acessou";
@@ -89,10 +92,24 @@ export default function PainelAdmin() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
+  const [openingApp, setOpeningApp] = useState(false);
+  const openApp = async () => {
+    if (openingApp) return;
+    setOpeningApp(true);
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) throw new Error("Sessão indisponível");
+      if (!enableAdminTestMode(user.id)) throw new Error("Armazenamento indisponível");
+      router.push("/start");
+    } catch {
+      setErro("Não foi possível abrir o app. Atualize a página e tente novamente.");
+      setOpeningApp(false);
+    }
+  };
   const [erro, setErro] = useState<string | null>(null);
-  const [aba, setAba] = useState<"geral" | "analytics">("geral");
+  const [aba, setAba] = useState<"geral" | "analytics" | "piloto">("piloto");
 
   const [igrejas, setIgrejas] = useState<Igreja[]>([]);
   const [membros, setMembros] = useState<Membro[]>([]);
@@ -107,6 +124,7 @@ export default function PainelAdmin() {
   const [usuarioEncontrado, setUsuarioEncontrado] = useState<UsuarioEncontrado | null | "nao_encontrado">(null);
   const [igrejaSelecionada, setIgrejaSelecionada] = useState("");
   const [promovendo, setPromovendo] = useState(false);
+  const [tipoVinculo, setTipoVinculo] = useState("membro");
   const [mensagem, setMensagem] = useState<string | null>(null);
 
   // Filtros do Analytics
@@ -119,9 +137,12 @@ export default function PainelAdmin() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
   const carregarTudo = useCallback(async () => {
-    const [overview, allMembers] = await Promise.all([
+    setErro(null);
+    const [overview, allMembers, pilotChurches, authorizedMembers] = await Promise.all([
       supabase.rpc("admin_get_overview"),
       supabase.rpc("admin_get_all_members"),
+      supabase.rpc("rota29_admin_pilot_churches"),
+      supabase.rpc("rota29_admin_authorized_member_ids"),
     ]);
 
     if (overview.error) {
@@ -133,15 +154,25 @@ export default function PainelAdmin() {
       setErro("Não foi possível carregar as igrejas.");
       return;
     }
-    setIgrejas(overview.data || []);
-
-    if (!allMembers.error) {
-      setMembros(allMembers.data || []);
+    if (pilotChurches.error || authorizedMembers.error) {
+      setErro("Não foi possível confirmar as autorizações das igrejas e participantes. Nenhum resultado foi exibido por segurança.");
+      setIgrejas([]);
+      setMembros([]);
+      return;
+    }
+    // Login Google cria uma conta técnica, mas não cria inscrição da igreja.
+    const pilotChurchIds = new Set((pilotChurches.data || []).map((c: {igreja_id:string})=>c.igreja_id));
+    const approvedIds = new Set((authorizedMembers.data || []).map((m: {user_id:string})=>m.user_id));
+    setIgrejas((overview.data || []).filter((i: Igreja) => pilotChurchIds.has(i.igreja_id)));
+    if (allMembers.error) {
+      setErro("Não foi possível carregar os participantes autorizados. Atualize a página.");
+      setMembros([]);
+    } else {
+      setMembros((allMembers.data || []).filter((m: Membro) => approvedIds.has(m.user_id) && pilotChurchIds.has(m.igreja_id || "")));
     }
   }, [supabase, router]);
 
   useEffect(() => {
-    setMounted(true);
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -191,7 +222,7 @@ export default function PainelAdmin() {
     if (!usuarioEncontrado || usuarioEncontrado === "nao_encontrado" || !igrejaSelecionada) return;
     setPromovendo(true);
     setMensagem(null);
-    const { error } = await supabase.rpc("admin_set_pastor", {
+    const { error } = await supabase.rpc(tipoVinculo === "pastor" ? "admin_set_pastor" : "admin_assign_member", {
       p_user_id: usuarioEncontrado.user_id,
       p_igreja_id: igrejaSelecionada,
     });
@@ -200,7 +231,7 @@ export default function PainelAdmin() {
       setMensagem("Erro ao promover: " + error.message);
       return;
     }
-    setMensagem(`${usuarioEncontrado.nome} agora é pastor(a) dessa igreja.`);
+    setMensagem(`${usuarioEncontrado.nome} vinculado(a) à igreja como ${tipoVinculo === "pastor" ? "pastor(a)" : "participante"}.`);
     setUsuarioEncontrado(null);
     setEmailBusca("");
     setIgrejaSelecionada("");
@@ -272,7 +303,7 @@ export default function PainelAdmin() {
     filtroFaixa !== "todas" ||
     busca.trim() !== "";
 
-  if (!mounted || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-bg-main flex justify-center items-center">
         <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin"></div>
@@ -286,15 +317,35 @@ export default function PainelAdmin() {
   return (
     <div className="min-h-screen bg-bg-main text-text-main font-sans pb-24">
       <div className="bg-bg-card pt-6 pb-4 px-6 sticky top-0 z-20 shadow-sm border-b border-accent/20 flex items-center justify-between">
-        <button onClick={() => router.push("/dashboard")} className="text-accent p-2 -ml-2">
+        <button aria-label="Usar o app" disabled={openingApp} onClick={() => void openApp()} className="text-accent p-2 -ml-2">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-[18px] font-serif font-bold text-text-main">Painel Master</h1>
-        <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-          <ShieldCheck size={16} className="text-accent" />
-        </div>
+        <h1 className="text-[18px] font-serif font-bold text-text-main">ROTA29 · Administração</h1>
+        <button type="button" disabled={signingOut} className="text-sm underline disabled:opacity-50"
+          onClick={async () => {
+            setSigningOut(true);
+            try {
+              const { error } = await supabase.auth.signOut({ scope: "local" });
+              if (error) throw error;
+              leaveAdminTestMode();
+              window.location.replace("/start");
+            } catch {
+              setErro("Não foi possível sair. Tente novamente.");
+              setSigningOut(false);
+            }
+          }}>{signingOut ? "Saindo…" : "Sair"}</button>
       </div>
 
+      <section className="mx-6 mt-5 p-4 rounded-2xl border border-accent/20 bg-bg-card">
+        <strong className="text-base">Gestão Institucional ROTA29</strong>
+        <p className="mt-1 text-xs text-text-muted">Administre o piloto ou use o aplicativo com esta mesma conta. Ao testar, você faz Radar, PDD e jornada sem perder o acesso administrativo. Seu progresso pessoal não entra nos indicadores de participantes das igrejas.</p>
+        <button type="button" disabled={openingApp} onClick={() => void openApp()}
+          className="mt-4 w-full rounded-xl bg-[#0F3D33] px-5 py-4 font-bold text-[#E9DFCE] border border-[#C79A5B] disabled:opacity-50">
+          {openingApp ? "Abrindo app…" : "Usar o app"}
+        </button>
+        <p className="mt-3 text-xs text-text-muted">Somente igrejas cadastradas e participantes aprovados pelo pastor entram nas listas institucionais. O login Google, sozinho, não autoriza a participação.</p>
+      </section>
+      <PilotApprovals />
       {/* Abas */}
       <div className="px-6 mt-6 flex gap-2">
         <button
@@ -303,7 +354,7 @@ export default function PainelAdmin() {
             aba === "geral" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"
           }`}
         >
-          Visão Geral
+          Instituições
         </button>
         <button
           onClick={() => setAba("analytics")}
@@ -311,8 +362,9 @@ export default function PainelAdmin() {
             aba === "analytics" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"
           }`}
         >
-          Analytics
+          Participantes
         </button>
+        <button onClick={() => setAba("piloto")} className={`flex-1 py-3 rounded-xl font-bold text-[13px] ${aba === "piloto" ? "bg-accent text-bg-main" : "bg-bg-card border border-accent/20 text-text-muted"}`}>Piloto · 21 dias</button>
       </div>
 
       {erro && <p className="text-red-500 text-[13px] text-center mt-4 px-6">{erro}</p>}
@@ -323,10 +375,11 @@ export default function PainelAdmin() {
           <div>
             <h2 className="text-[20px] font-bold font-serif text-text-main mb-1">Visão Geral do Sistema</h2>
             <p className="text-text-muted text-[13px] mb-4">
-              {igrejas.length} {igrejas.length === 1 ? "igreja licenciada" : "igrejas licenciadas"} · {totalMembros} membros · {totalPastores} pastores
+              {igrejas.length} {igrejas.length === 1 ? "igreja cadastrada" : "igrejas cadastradas"} · {totalMembros} participantes vinculados · {totalPastores} pastores
             </p>
           </div>
 
+          <p className="text-xs text-text-muted">Contas Google sem cadastro institucional não entram nesta relação.</p>
           {/* Lista de igrejas */}
           <div className="space-y-3">
             {igrejas.map((i) => (
@@ -344,11 +397,14 @@ export default function PainelAdmin() {
             ))}
           </div>
 
-          {/* Criar nova igreja */}
-          <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
+          {/* Compatibilidade: criação manual fica oculta no fluxo normal do piloto. */}
+          <details className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
+            <summary className="text-sm font-bold cursor-pointer">Ações técnicas excepcionais</summary>
+            <p className="text-xs text-text-muted my-3">Para cadastro normal de igrejas, utilize o fluxo autônomo em /igreja. Esta opção legada cria apenas um registro técnico sem informações completas do pastor.</p>
+          <div className="mt-3">
             <div className="flex items-center gap-2 mb-4">
               <Plus className="text-accent" size={18} />
-              <h3 className="text-[14px] font-bold uppercase tracking-wider">Cadastrar Nova Igreja</h3>
+              <h3 className="text-[14px] font-bold uppercase tracking-wider">Cadastro excepcional pelo administrador</h3>
             </div>
             <div className="flex gap-2">
               <input
@@ -356,7 +412,7 @@ export default function PainelAdmin() {
                 value={novoNomeIgreja}
                 onChange={(e) => setNovoNomeIgreja(e.target.value)}
                 placeholder="Nome da igreja"
-                className="flex-1 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
+                className="flex-1 min-w-0 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
               />
               <button
                 onClick={handleCriarIgreja}
@@ -367,12 +423,13 @@ export default function PainelAdmin() {
               </button>
             </div>
           </div>
+          </details>
 
           {/* Promover pastor */}
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <UserPlus className="text-accent" size={18} />
-              <h3 className="text-[14px] font-bold uppercase tracking-wider">Vincular Pastor a uma Igreja</h3>
+              <h3 className="text-[14px] font-bold uppercase tracking-wider">Vincular pessoa a uma igreja</h3>
             </div>
 
             <div className="flex gap-2 mb-3">
@@ -381,9 +438,10 @@ export default function PainelAdmin() {
                 value={emailBusca}
                 onChange={(e) => setEmailBusca(e.target.value)}
                 placeholder="E-mail já cadastrado no app"
-                className="flex-1 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
+                className="flex-1 min-w-0 bg-bg-main border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
               />
               <button
+                aria-label="Buscar usuário por e-mail"
                 onClick={handleBuscarUsuario}
                 disabled={buscando || !emailBusca.trim()}
                 className="bg-bg-main border border-accent/30 text-text-main px-4 rounded-xl disabled:opacity-40"
@@ -404,6 +462,7 @@ export default function PainelAdmin() {
                 </p>
 
                 <select
+                  aria-label="Igreja do vínculo"
                   value={igrejaSelecionada}
                   onChange={(e) => setIgrejaSelecionada(e.target.value)}
                   className="w-full bg-bg-card border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main mb-3"
@@ -416,12 +475,18 @@ export default function PainelAdmin() {
                   ))}
                 </select>
 
+                <label className="block text-sm mb-3">Tipo de acesso
+                  <select aria-label="Tipo de vínculo" value={tipoVinculo} onChange={e => setTipoVinculo(e.target.value)} className="w-full bg-bg-card border border-accent/20 rounded-xl px-4 py-3">
+                    <option value="membro">Participante</option><option value="pastor">Pastor(a)</option>
+                  </select>
+                </label>
+                <p className="text-xs mb-3">Confira a igreja antes de salvar. Um pastor terá acesso ao acompanhamento dos participantes dessa igreja.</p>
                 <button
                   onClick={handlePromover}
                   disabled={promovendo || !igrejaSelecionada}
                   className="w-full bg-accent text-bg-main py-3 rounded-xl font-bold disabled:opacity-40"
                 >
-                  {promovendo ? "Promovendo..." : "Tornar Pastor(a) dessa Igreja"}
+                  {promovendo ? "Salvando..." : "Salvar vínculo"}
                 </button>
               </div>
             )}
@@ -431,13 +496,18 @@ export default function PainelAdmin() {
         </div>
       )}
 
-      {aba === "analytics" && (
+      {aba === "piloto" && <PilotWorkspace churches={igrejas} />}
+      {aba === "analytics" && !erro && (
         <div className="px-6 mt-8 space-y-6">
           <div>
             <h2 className="text-[20px] font-bold font-serif text-text-main mb-1">Analytics Cruzado</h2>
             <p className="text-text-muted text-[13px]">
-              Filtre e cruze os dados de todas as igrejas ao mesmo tempo.
+              Apenas participantes de igrejas do piloto com autorização pastoral ativa. Contas Google sem igreja e contas anteriores não são participantes do piloto.
             </p>
+            <button className="underline text-sm mt-3" onClick={() => download([
+              ["participante_id", "igreja_id", "igreja", "nome", "email", "papel", "cadastro", "ultima_atividade", "estacao_liberada", "dia"],
+              ...membrosFiltrados.map(m => [m.user_id, m.igreja_id, m.igreja_nome, m.nome, m.email, m.role, m.criado_em, m.ultima_atividade, stationNumber(m.estacao_atual), m.dia_estacao_atual]),
+            ], "rota29-participantes.csv")}>Baixar participantes do filtro</button>
           </div>
 
           {/* Busca + botão de filtros */}
@@ -447,7 +517,7 @@ export default function PainelAdmin() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por nome ou e-mail"
-              className="flex-1 bg-bg-card border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
+              className="flex-1 min-w-0 bg-bg-card border border-accent/20 rounded-xl px-4 py-3 text-[14px] text-text-main placeholder:text-text-muted"
             />
             <button
               onClick={() => setMostrarFiltros((v) => !v)}
@@ -553,7 +623,7 @@ export default function PainelAdmin() {
             </div>
             <div className="bg-bg-card border border-accent/20 rounded-2xl p-4 text-center">
               <Activity className="mx-auto text-accent mb-1" size={18} />
-              <p className="text-[22px] font-black leading-none">{resumo.mediaEstacao}</p>
+              <p className="text-[22px] font-black leading-none">{Math.round((resumo.mediaEstacao + 1) * 10) / 10}</p>
               <p className="text-[10px] uppercase tracking-wider text-text-muted mt-1">Estação média</p>
             </div>
             <div className="bg-bg-card border border-accent/20 rounded-2xl p-4 text-center">
@@ -597,7 +667,6 @@ export default function PainelAdmin() {
 
             {membrosFiltrados.map((m) => {
               const nivel = nivelInatividade(m.ultima_atividade);
-              const percentual = Math.min(100, Math.round((m.estacao_atual / TOTAL_ESTACOES) * 100));
               return (
                 <div key={m.user_id} className="bg-bg-card border border-accent/20 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-1.5">
@@ -625,14 +694,11 @@ export default function PainelAdmin() {
 
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[12px] text-text-muted">
-                      Estação {m.estacao_atual} de {TOTAL_ESTACOES}
+                      Estação liberada {stationNumber(m.estacao_atual)} de {TOTAL_ESTACOES}
                       {m.dia_estacao_atual ? ` · Dia ${m.dia_estacao_atual}/21` : ""}
                     </span>
-                    <span className="text-[12px] font-bold text-accent">{percentual}%</span>
                   </div>
-                  <div className="w-full bg-bg-main h-2 rounded-full overflow-hidden border border-accent/10">
-                    <div className="bg-accent h-full rounded-full opacity-80" style={{ width: `${percentual}%` }} />
-                  </div>
+                  <p className="text-xs text-text-muted">Estações podem se sobrepor. A liberação não representa conclusão.</p>
                 </div>
               );
             })}

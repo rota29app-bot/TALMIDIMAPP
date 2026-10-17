@@ -1,168 +1,53 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "../../../utils/supabase/client";
-import { ArrowLeft, Users, Clock } from "lucide-react";
-
-type Membro = {
-  user_id: string;
-  nome: string;
-  email: string;
-  estacao_atual: number;
-  ultima_atividade: string | null;
-};
-
-const TOTAL_ESTACOES = 7;
-
-function formatarAtividade(dataIso: string | null): string {
-  if (!dataIso) return "Nunca acessou";
-
-  const data = new Date(dataIso);
-  const agoraMs = Date.now();
-  const diffMs = agoraMs - data.getTime();
-  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDias <= 0) return "Hoje";
-  if (diffDias === 1) return "Ontem";
-  if (diffDias < 7) return `Há ${diffDias} dias`;
-  if (diffDias < 30) return `Há ${Math.floor(diffDias / 7)} semana(s)`;
-  return `Há ${Math.floor(diffDias / 30)} mês(es)`;
-}
-
-function nivelInatividade(dataIso: string | null): "ok" | "atencao" | "alerta" {
-  if (!dataIso) return "alerta";
-  const diffDias = Math.floor((Date.now() - new Date(dataIso).getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDias >= 21) return "alerta";
-  if (diffDias >= 7) return "atencao";
-  return "ok";
-}
-
-export default function ListaMembros() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-  const [membros, setMembros] = useState<Membro[]>([]);
-
-  useEffect(() => {
-    setMounted(true);
-    const fetchMembros = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/start");
-        return;
-      }
-
-      const { data, error } = await supabase.rpc("get_church_members");
-
-      if (error) {
-        if (error.message?.includes("Acesso negado")) {
-          alert("Acesso Negado: Apenas líderes e pastores têm acesso a este painel.");
-          router.push("/dashboard");
-          return;
-        }
-        setErro("Não foi possível carregar a lista de membros.");
-        setLoading(false);
-        return;
-      }
-
-      setMembros(data || []);
-      setLoading(false);
-    };
-
-    fetchMembros();
-  }, [router, supabase]);
-
-  if (!mounted || loading) {
-    return (
-      <div className="min-h-screen bg-bg-main flex justify-center items-center">
-        <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-bg-main text-text-main font-sans pb-24">
-      <div className="bg-bg-card pt-6 pb-4 px-6 sticky top-0 z-20 shadow-sm border-b border-accent/20 flex items-center justify-between">
-        <button onClick={() => router.push("/pastor")} className="text-accent p-2 -ml-2">
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-[18px] font-serif font-bold text-text-main">Lista de Membros</h1>
-        <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-          <Users size={16} className="text-accent" />
-        </div>
-      </div>
-
-      <div className="px-6 mt-8">
-        <div className="mb-6">
-          <h2 className="text-[20px] font-bold font-serif text-text-main mb-1">
-            {membros.length} {membros.length === 1 ? "membro" : "membros"}
-          </h2>
-          <p className="text-text-muted text-[13px]">
-            Progresso na jornada e última atividade de cada discípulo.
-          </p>
-        </div>
-
-        {erro && (
-          <div className="text-center py-10">
-            <p className="text-text-muted text-[13px]">{erro}</p>
-          </div>
-        )}
-
-        {!erro && membros.length === 0 && (
-          <div className="text-center py-10">
-            <Users className="mx-auto text-accent/30 mb-3" size={32} />
-            <p className="text-text-muted text-[13px]">Nenhum membro vinculado a essa igreja ainda.</p>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {membros.map((m) => {
-            const nivel = nivelInatividade(m.ultima_atividade);
-            const percentual = Math.min(100, Math.round((m.estacao_atual / TOTAL_ESTACOES) * 100));
-
-            return (
-              <div
-                key={m.user_id}
-                className="bg-bg-card border border-accent/20 rounded-2xl p-4 shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-[14px] text-text-main truncate pr-2">{m.nome}</span>
-                  <span
-                    className={
-                      "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full flex items-center gap-1 shrink-0 " +
-                      (nivel === "alerta"
-                        ? "bg-red-500/10 text-red-500"
-                        : nivel === "atencao"
-                        ? "bg-yellow-500/10 text-yellow-600"
-                        : "bg-accent/10 text-accent")
-                    }
-                  >
-                    <Clock size={10} />
-                    {formatarAtividade(m.ultima_atividade)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[12px] text-text-muted">
-                    Estação {m.estacao_atual} de {TOTAL_ESTACOES}
-                  </span>
-                  <span className="text-[12px] font-bold text-accent">{percentual}%</span>
-                </div>
-                <div className="w-full bg-bg-main h-2 rounded-full overflow-hidden border border-accent/10">
-                  <div
-                    className="bg-accent h-full rounded-full opacity-80"
-                    style={{ width: `${percentual}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
+import {useEffect,useState} from "react";
+import {useRouter} from "next/navigation";
+import {createClient} from "../../../utils/supabase/client";
+import type {PastoralData} from "../page";
+import {ArrowLeft,Users} from "lucide-react";
+export default function Members() {
+ const router=useRouter();
+ const [data,setData]=useState<PastoralData|null>(null);
+ const [loading,setLoading]=useState(true);
+ const [error,setError]=useState("");
+ useEffect(()=>{
+  let active=true;
+  (async()=>{
+   const db=createClient();
+   const {data:{user}}=await db.auth.getUser();
+   if(!active)return;
+   if(!user){router.replace("/start");return;}
+   const {data:res,error:err}=await db.rpc("rota29_pastoral_dashboard");
+   if(!active)return;
+   if(err)setError("Não foi possível acessar os membros desta igreja.");
+   else setData(res as PastoralData);
+   setLoading(false);
+  })();
+  return()=>{active=false};
+ },[router]);
+ return <main className="min-h-screen bg-bg-main text-text-main pb-16">
+  <header className="px-5 py-5 border-b border-accent/20 bg-bg-card flex items-center gap-3">
+   <button aria-label="Voltar ao painel pastoral" onClick={()=>router.push("/pastor")}><ArrowLeft/></button>
+   <Users/><h1 className="font-bold text-lg">Membros · ROTA29</h1>
+  </header>
+  <div className="max-w-4xl mx-auto p-5 space-y-4">
+  {loading?<p>Carregando lista…</p>:error?<p role="alert">{error}</p>:data&&<>
+    <h2 className="font-bold">{data.igreja} — {data.members.length} membro(s)</h2>
+    <p className="text-sm text-text-muted">Dados de progresso e últimas atividades da sua própria igreja. A ausência é um convite ao cuidado pastoral.</p>
+    {data.members.map(m=><article key={m.user_id} className="rounded-2xl bg-bg-card p-5 border border-accent/20">
+     <div className="flex justify-between gap-3 items-start">
+       <div><h3 className="font-bold">{m.nome}</h3><p className="text-xs text-text-muted">{m.email}</p></div>
+       <span className="text-xs">{m.inativo?"Acompanhar":"Em atividade"}</span>
+     </div>
+     <p className="text-sm mt-3">Última atividade: {m.last_activity?new Date(m.last_activity+"T12:00:00").toLocaleDateString("pt-BR"):"Não registrada"}</p>
+     <dl className="grid grid-cols-3 gap-2 text-xs mt-3">
+       <div className="p-2 rounded-lg bg-bg-main"><dt>Intimidade</dt><dd className="font-bold">{Math.max(0,m.intimidade-1)}/21</dd></div>
+       <div className="p-2 rounded-lg bg-bg-main"><dt>Família</dt><dd className="font-bold">{Math.min(7,Math.max(0,m.familia-1))}/7</dd></div>
+       <div className="p-2 rounded-lg bg-bg-main"><dt>Compaixão</dt><dd className="font-bold">{Math.min(7,Math.max(0,m.compaixao-1))}/7</dd></div>
+     </dl>
+     <p className="text-xs text-text-muted mt-3">Práticas completas: Intimidade {m.practice_intimidade||0}, Família {m.practice_familia||0}, Compaixão {m.practice_compaixao||0}.</p>
+     <p className="text-xs text-text-muted mt-3">Dias ativos nesta semana: {m.days_7} · No mês: {m.days_30} · Insígnia: {m.badge?"Conquistada":"Em andamento"}</p>
+    </article>)}
+  </>}
+  </div>
+ </main>;
 }

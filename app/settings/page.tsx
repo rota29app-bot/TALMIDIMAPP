@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Bell, BellRing, Clock, Save, Info, Users, MapPin } from "lucide-react";
+import { ArrowLeft, BellRing, Clock, Save, Info, Users, MapPin } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 import { createClient } from "../../utils/supabase/client";
 
@@ -23,28 +23,27 @@ export default function SettingsPage() {
   const [idade, setIdade] = useState("");
   const [salvandoPerfil, setSalvandoPerfil] = useState(false);
   const [perfilSalvo, setPerfilSalvo] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPastor, setIsPastor] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    if ("Notification" in window) {
-      setPermission(Notification.permission);
-    }
-
-    // Load from local storage
-    const savedTsd = localStorage.getItem("talmidim_tsd_time");
-    const savedPdd = localStorage.getItem("talmidim_pdd_time");
-    if (savedTsd) setTsdTime(savedTsd);
-    if (savedPdd) setPddTime(savedPdd);
-
     const carregarPerfil = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      setMounted(true);
+      if ("Notification" in window) setPermission(Notification.permission);
+      const savedTsd = localStorage.getItem("talmidim_tsd_time");
+      const savedPdd = localStorage.getItem("talmidim_pdd_time");
+      if (savedTsd) setTsdTime(savedTsd);
+      if (savedPdd) setPddTime(savedPdd);
       if (!session) return;
       const { data } = await supabase
         .from("user_roles")
-        .select("estado, cidade, idade")
+        .select("estado, cidade, idade, role, is_super_admin")
         .eq("user_id", session.user.id)
         .single();
       if (data) {
+        setIsAdmin(data.is_super_admin === true);
+        setIsPastor(data.role === "pastor");
         if (data.estado) setEstado(data.estado);
         if (data.cidade) setCidade(data.cidade);
         if (data.idade) setIdade(String(data.idade));
@@ -77,7 +76,7 @@ export default function SettingsPage() {
     
     if (result === "granted") {
       new Notification("Notificações Ativadas!", {
-        body: "Você receberá lembretes para sua jornada Talmidim.",
+        body: "Você receberá lembretes para sua jornada ROTA29.",
         icon: "/icons/icon-192x192.png"
       });
     }
@@ -102,7 +101,7 @@ export default function SettingsPage() {
         <button onClick={() => router.back()} className="text-accent p-2 -ml-2">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-[18px] font-serif font-bold text-text-main">Lembretes</h1>
+        <h1 className="text-[18px] font-serif font-bold text-text-main">Meu ROTA29</h1>
         <div className="w-8"></div>
       </div>
 
@@ -135,6 +134,12 @@ export default function SettingsPage() {
         )}
 
         <div className="space-y-6">
+          {(isAdmin || isPastor) && <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 space-y-3">
+            <h2 className="font-bold">Gestão e acompanhamento</h2>
+            {isAdmin && <button onClick={() => router.push("/admin")} className="block w-full bg-accent text-bg-main py-3 rounded-xl font-bold">Abrir administração</button>}
+            {isPastor && <button onClick={() => router.push("/pastor")} className="block w-full border border-accent/30 py-3 rounded-xl font-bold">Abrir painel pastoral</button>}
+            {isPastor && <button onClick={() => router.push("/igreja")} className="block w-full border border-accent/30 py-3 rounded-xl font-bold">Copiar convite da minha igreja</button>}
+          </div>}
 
           {/* Perfil: estado, cidade, idade */}
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
@@ -239,7 +244,7 @@ export default function SettingsPage() {
             className={`w-full py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2
               ${saved 
                 ? "bg-green-600 text-white" 
-                : "bg-gradient-to-r from-[#d5b080] to-[#b38a53] text-[#111812]"
+                : "bg-gradient-to-r from-[#C79A5B] to-[#b38a53] text-[#12382F]"
               }`}
           >
             {saved ? (
@@ -252,7 +257,7 @@ export default function SettingsPage() {
           <div className="flex items-start gap-2 mt-4 text-text-muted bg-bg-card p-4 rounded-xl border border-accent/10">
             <Info size={16} className="text-accent mt-0.5 flex-shrink-0" />
             <p className="text-[11px] leading-relaxed">
-              As notificações funcionarão enquanto o aplicativo tiver permissão do sistema operacional. Em iPhones (iOS), é necessário "Adicionar à Tela de Início" primeiro.
+              Os horários ficam salvos neste aparelho. O envio automático de lembretes ainda não está implementado.
             </p>
           </div>
 

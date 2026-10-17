@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { getStage, badgeNames } from "../../data";
+import { getStage, badgeNames, stageOrder } from "../../data";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, useParams, useRouter, useSearchParams } from "next/navigation";
@@ -275,13 +275,22 @@ function StagePageContent() {
     fetchProgress();
   }, [id, stage]);
 
-  if (!stage) {
+  if (!stage || !stageOrder.includes(id)) {
     notFound();
     return null;
   }
 
   if (isLoading) {
     return <div className="min-h-screen bg-[#1a1a1a]" />;
+  }
+
+  if (id !== "house" && dayIndex > 7 && !isReviewing) {
+    return <main className="min-h-screen bg-bg-main text-text-main flex flex-col items-center justify-center p-6 gap-5 text-center">
+      <h1 className="text-2xl font-bold">{stage.title} — etapa do piloto concluída</h1>
+      <p className="max-w-md">Você concluiu os sete dias desta estação previstos no piloto. Continue Intimidade com Deus até o dia 21 para conquistar a primeira insígnia.</p>
+      <button onClick={() => router.push("/stage/house")} className="bg-accent text-bg-main px-6 py-3 rounded-xl font-bold">Continuar Intimidade</button>
+      <button onClick={() => router.push("/")} className="underline">Voltar ao mapa</button>
+    </main>;
   }
 
   const currentDayData = stage.days[dayIndex - 1];
@@ -447,7 +456,7 @@ function StagePageContent() {
           >
              <div className="relative w-[95px] h-[35px] mb-8 mt-0">
                {/* Reduzindo o scale para 1.7 e retornando o pt para 10 para alinhar com o coração sem esmagar o número */}
-               <Image src="/logo.png" alt="Talmidim Logo" fill className="object-contain dark:invert opacity-90 scale-[1.7] origin-center" />
+               <Image src="/brand/rota29-symbol.svg" alt="Símbolo ROTA29" fill className="object-contain opacity-95" />
              </div>
              
              <h1 className="text-[54px] font-black text-text-main leading-[0.8] tracking-tighter">
@@ -1113,7 +1122,7 @@ function StagePageContent() {
             </div>
             <div className="w-full h-2 rounded-full bg-text-main/10 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#b58b54] to-[#eaddc5] transition-all duration-700"
+                className="h-full rounded-full bg-gradient-to-r from-[#C79A5B] to-[#E9DFCE] transition-all duration-700"
                 style={{ width: `${(currentDayData.day / 21) * 100}%` }}
               />
             </div>

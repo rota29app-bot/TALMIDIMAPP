@@ -77,12 +77,14 @@ export default function HojePage() {
         dayMap[row.stage_id] = row.day_index;
       });
 
-      const lastStageId = stageOrder[stageOrder.length - 1];
-      const done = (dayMap[lastStageId] || 0) >= 21;
+      const { data: badge } = await supabase.from("user_badges")
+        .select("id").eq("user_id",session.user.id).eq("badge_id","house").maybeSingle();
+      const done = !!badge;
       setJourneyDone(done);
 
-      if (!done && resolvedIndex < stageOrder.length) {
-        const stageId = stageOrder[resolvedIndex];
+      if (!done) {
+        const unlocked = stageOrder[Math.min(Math.max(0, resolvedIndex), stageOrder.length - 1)];
+        const stageId = unlocked !== "house" && (dayMap[unlocked] || 1) > 7 ? "house" : unlocked;
         setActiveStageId(stageId);
         setActiveDay(dayMap[stageId] || 1);
       }
@@ -129,8 +131,8 @@ export default function HojePage() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-[#fdfaf6] flex justify-center items-center">
-        <div className="w-8 h-8 border-4 border-[#eaddc5] border-t-[#c69b5c] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#F8F5F0] flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-[#E9DFCE] border-t-[#C79A5B] rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -140,13 +142,13 @@ export default function HojePage() {
   const isInPractice = activeDay >= 8 && activeDay <= 21;
 
   return (
-    <div className="min-h-screen bg-[#fdfaf6] text-[#243525] font-sans pb-32">
-      <div className="pt-12 pb-6 px-6 border-b border-[#eaddc5]/60 bg-[#fdfbf7]">
+    <div className="min-h-screen bg-[#F8F5F0] text-[#0F3D33] font-sans pb-32">
+      <div className="pt-12 pb-6 px-6 border-b border-[#E9DFCE]/60 bg-[#F8F5F0]">
         <div className="flex items-center gap-2 mb-1 opacity-80">
-          <Sun size={18} className="text-[#c69b5c]" />
-          <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#b58b54]">Hoje</span>
+          <Sun size={18} className="text-[#C79A5B]" />
+          <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#C79A5B]">Hoje</span>
         </div>
-        <h1 className="text-[26px] font-serif font-bold text-[#1f3020]">Olá, {userName}</h1>
+        <h1 className="text-[26px] font-serif font-bold text-[#0F3D33]">Olá, {userName}</h1>
       </div>
 
       <div className="px-6 pt-6 space-y-4">
@@ -154,7 +156,7 @@ export default function HojePage() {
         {journeyDone ? (
           <div className="bg-white border border-[#f0e4cd] rounded-2xl p-6 text-center shadow-sm">
             <p className="text-[15px] text-[#3b5238] font-medium">
-              Você concluiu as sete estações. Sua jornada continua além do aplicativo — a formação de um discípulo nunca termina de verdade.
+              Você concluiu os 21 dias de Intimidade do piloto. O acompanhamento de experiência e resultados segue até 13 de novembro.
             </p>
           </div>
         ) : stage && dayData ? (
@@ -163,12 +165,12 @@ export default function HojePage() {
             className="w-full text-left bg-white border border-[#f0e4cd] rounded-2xl p-5 shadow-sm active:scale-[0.99] transition-transform"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold tracking-widest text-[#b58b54] uppercase">
+              <span className="text-[11px] font-bold tracking-widest text-[#C79A5B] uppercase">
                 {stage.title} · Dia {activeDay} de 21
               </span>
-              <ChevronRight size={18} className="text-[#c69b5c]" />
+              <ChevronRight size={18} className="text-[#C79A5B]" />
             </div>
-            <p className="text-[16px] font-bold text-[#1f3020] mb-1">{dayData.title}</p>
+            <p className="text-[16px] font-bold text-[#0F3D33] mb-1">{dayData.title}</p>
             {isInPractice && (
               <span className="inline-block text-[11px] font-bold text-[#8b6131] bg-[#8b6131]/10 rounded-full px-3 py-1 mt-1">
                 Fase de prática contínua
@@ -178,16 +180,14 @@ export default function HojePage() {
             {/* Lembrete elegante de quanto falta pra insígnia (pedido do
                 Nilton) — barra fina + contagem, no lugar de só um texto. */}
             <div className="mt-4">
-              <div className="w-full h-1.5 rounded-full bg-[#eaddc5]/60 overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#E9DFCE]/60 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#d5b080] to-[#c69b5c]"
+                  className="h-full rounded-full bg-gradient-to-r from-[#C79A5B] to-[#C79A5B]"
                   style={{ width: `${(activeDay / 21) * 100}%` }}
                 />
               </div>
               <p className="text-[12px] text-[#8b6131] font-bold mt-2">
-                {21 - activeDay <= 0
-                  ? `Insígnia "${badgeNames[activeStageId as string] || "desta estação"}" liberada!`
-                  : `Faltam ${21 - activeDay} dia${21 - activeDay === 1 ? "" : "s"} para a insígnia "${badgeNames[activeStageId as string] || "desta estação"}"`}
+                {`Primeira insígnia "${badgeNames.house}" ao concluir os 21 dias de Intimidade.`}
               </p>
             </div>
           </button>
@@ -200,7 +200,7 @@ export default function HojePage() {
         {/* Hábitos diários fixos — valem para o dia, não para a estação */}
         <div className="bg-white border border-[#f0e4cd] rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <Flame size={16} className="text-[#c69b5c]" />
+            <Flame size={16} className="text-[#C79A5B]" />
             <h3 className="text-[14px] font-bold text-[#8b6131]">Práticas Diárias</h3>
           </div>
           <div className="space-y-3">
@@ -210,10 +210,10 @@ export default function HojePage() {
                 checked={tsdDone}
                 onChange={() => toggleGlobalPractice("tsd_done")}
                 disabled={saving}
-                className="mt-1 w-5 h-5 accent-[#c69b5c] rounded-sm"
+                className="mt-1 w-5 h-5 accent-[#C79A5B] rounded-sm"
               />
               <div>
-                <span className="block font-bold text-[#243525] text-[14px]">Tempo a Sós com Deus (TSD)</span>
+                <span className="block font-bold text-[#0F3D33] text-[14px]">Tempo a Sós com Deus (TSD)</span>
                 <span className="text-[12px] text-[#3b5238]/70">15 min de oração + 15 min de leitura bíblica.</span>
               </div>
             </label>
@@ -223,10 +223,10 @@ export default function HojePage() {
                 checked={intercessionDone}
                 onChange={() => toggleGlobalPractice("intercession_done")}
                 disabled={saving}
-                className="mt-1 w-5 h-5 accent-[#c69b5c] rounded-sm"
+                className="mt-1 w-5 h-5 accent-[#C79A5B] rounded-sm"
               />
               <div>
-                <span className="block font-bold text-[#243525] text-[14px]">5 Pessoas em Oração</span>
+                <span className="block font-bold text-[#0F3D33] text-[14px]">5 Pessoas em Oração</span>
                 <span className="text-[12px] text-[#3b5238]/70">Orar por 5 pessoas de seu círculo de relacionamentos.</span>
               </div>
             </label>
@@ -240,14 +240,14 @@ export default function HojePage() {
             className="bg-white border border-[#f0e4cd] rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm active:scale-95 transition-transform"
           >
             <BookText size={20} className="text-[#8b6131]" />
-            <span className="text-[12px] font-bold text-[#243525]">Memorial</span>
+            <span className="text-[12px] font-bold text-[#0F3D33]">Memorial</span>
           </button>
           <button
             onClick={() => router.push("/dashboard")}
             className="bg-white border border-[#f0e4cd] rounded-2xl p-4 flex flex-col items-center gap-2 shadow-sm active:scale-95 transition-transform"
           >
             <Trophy size={20} className="text-[#8b6131]" />
-            <span className="text-[12px] font-bold text-[#243525]">Conquistas</span>
+            <span className="text-[12px] font-bold text-[#0F3D33]">Conquistas</span>
           </button>
         </div>
 

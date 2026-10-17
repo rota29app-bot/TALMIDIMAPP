@@ -38,7 +38,7 @@ const screens = [
       "PDD é o seu Plano de Ação de Desenvolvimento Discipular — um compromisso pessoal, escrito diante de Deus, para se tornar praticante da Palavra e não só ouvinte.",
       "Você escolhe até 2 áreas da sua vida espiritual que quer desenvolver nas próximas 3 semanas, e assume o compromisso de agir nelas todos os dias.",
       "Foco: até 2 áreas do seu Radar. Duração: 3 semanas de prática diária. Termina com uma assinatura de compromisso.",
-      "O PDD é seu — o Talmidim só te ajuda a registrar essa decisão.",
+      "O PDD é seu — o ROTA29 só te ajuda a registrar essa decisão.",
     ],
     buttonLabel: "Entendi, vamos montar meu PDD",
   },
@@ -80,20 +80,20 @@ export default function PddIntroPage() {
       ref={containerRef}
       onClick={advance}
       className="relative min-h-screen w-full flex justify-center cursor-pointer select-none"
-      style={{ background: "linear-gradient(180deg, #0a0f0a 0%, #16210f 100%)" }}
+      style={{ background: "linear-gradient(180deg, #0C2D26 0%, #16210f 100%)" }}
     >
       <div className="w-full max-w-[420px] relative flex flex-col min-h-screen px-8">
         <div
           className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px opacity-25"
-          style={{ background: "linear-gradient(180deg, transparent 0%, #c69b5c 50%, transparent 100%)" }}
+          style={{ background: "linear-gradient(180deg, transparent 0%, #C79A5B 50%, transparent 100%)" }}
         />
 
         <div className="flex-1 flex flex-col justify-center relative z-10">
           <div
             className="w-11 h-11 rounded-full border flex items-center justify-center mb-6"
-            style={{ borderColor: "#c69b5c" }}
+            style={{ borderColor: "#C79A5B" }}
           >
-            <Icon className="w-5 h-5 text-[#c69b5c]" />
+            <Icon className="w-5 h-5 text-[#C79A5B]" />
           </div>
 
           {Screen.lines.map((line, i) => (
@@ -104,7 +104,7 @@ export default function PddIntroPage() {
                 fontFamily: i === 0 ? "Georgia, serif" : undefined,
                 fontSize: i === 0 ? 24 : 15,
                 fontWeight: i === 0 ? 700 : 400,
-                color: i === 0 ? "#fdf0d5" : "#eaddc5cc",
+                color: i === 0 ? "#F8F5F0" : "#E9DFCEcc",
                 marginBottom: 12,
                 opacity: 0,
                 transform: "translateY(14px)",
@@ -124,7 +124,7 @@ export default function PddIntroPage() {
             }}
             className="mt-4 self-start uppercase font-bold tracking-wide text-[13px] px-6 py-3 rounded-xl"
             style={{
-              background: "linear-gradient(90deg, #b58b54, #eaddc5)",
+              background: "linear-gradient(90deg, #C79A5B, #E9DFCE)",
               color: "#1a1406",
               opacity: 0,
               animation: `teleUp 0.7s cubic-bezier(0.25,1,0.5,1) ${Screen.lines.length * 0.22 + 0.1}s forwards`,
@@ -138,7 +138,7 @@ export default function PddIntroPage() {
           {!isLast && (
             <p
               className="text-center text-[10px] uppercase tracking-widest mb-4"
-              style={{ color: "#eaddc580" }}
+              style={{ color: "#E9DFCE80" }}
             >
               Toque pra continuar
             </p>
@@ -151,7 +151,7 @@ export default function PddIntroPage() {
                 style={{
                   width: 6,
                   height: 6,
-                  background: i === index ? "#eaddc5" : "#eaddc540",
+                  background: i === index ? "#E9DFCE" : "#E9DFCE40",
                 }}
               />
             ))}

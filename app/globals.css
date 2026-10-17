@@ -1,39 +1,14 @@
 @import "tailwindcss";
-
-:root {
-  /* DAY MODE (Default) */
-  --bg-main: #fdfbf6;
-  --text-main: #1a202c;
-  --text-muted: #1a202c;
-  --bg-card: #ffffff;
-  --border-color: #c69c6d;
-  --accent: #c69c6d;
-  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-:root[data-theme="dark"] {
-  /* NIGHT MODE */
-  --bg-main: #0a0f0a;
-  --text-main: #eaddc5;
-  --text-muted: rgba(234, 221, 197, 0.7);
-  --bg-card: #111812;
-  --border-color: rgba(198, 156, 109, 0.2);
-  --accent: #c69b5c;
-  --card-shadow: 0 10px 30px rgba(198, 155, 92, 0.05);
-}
-
-@theme inline {
-  --color-bg-main: var(--bg-main);
-  --color-text-main: var(--text-main);
-  --color-text-muted: var(--text-muted);
-  --color-bg-card: var(--bg-card);
-  --color-border-color: var(--border-color);
-  --color-accent: var(--accent);
-}
-
-body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.5s ease, color 0.5s ease;
-}
+:root{--rota-verde:#0F3D33;--rota-terra:#C79A5B;--rota-areia:#E9DFCE;--rota-grafite:#2E2E2E;
+--bg-main:#F8F5F0;--text-main:#2E2E2E;--text-muted:#425E54;--bg-card:#FFFEFC;
+--border-color:rgba(15,61,51,.22);--accent:#0F3D33;--card-shadow:0 12px 32px rgba(15,61,51,.09)}
+:root[data-theme="dark"]{--bg-main:#09251F;--text-main:#F8F5F0;--text-muted:#D4DCD6;--bg-card:#12382F;
+--border-color:rgba(199,154,91,.32);--accent:#E3B87D;--card-shadow:0 10px 30px rgba(0,0,0,.2)}
+@theme inline{--color-bg-main:var(--bg-main);--color-text-main:var(--text-main);
+--color-text-muted:var(--text-muted);--color-bg-card:var(--bg-card);
+--color-border-color:var(--border-color);--color-accent:var(--accent)}
+body{background:var(--bg-main);color:var(--text-main);font-family:Arial,Helvetica,sans-serif;transition:background-color .3s ease,color .3s ease}
+::selection{background:#C79A5B;color:#0F3D33}:focus-visible{outline:2px solid #C79A5B;outline-offset:3px}
+.rota29-entrance{animation:rota29-enter .8s ease-out both}
+@keyframes rota29-enter{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.rota29-entrance{animation:none}html{scroll-behavior:auto!important}}

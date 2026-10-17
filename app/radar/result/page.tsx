@@ -68,8 +68,8 @@ export default function RadarResultPage() {
 
   if (!mounted || scores.length === 0) {
     return (
-      <div className="min-h-screen bg-[#fdfaf6] flex justify-center items-center">
-        <div className="w-8 h-8 border-4 border-[#eaddc5]/30 border-t-[#c69b5c] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#F8F5F0] flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-[#E9DFCE]/30 border-t-[#C79A5B] rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export default function RadarResultPage() {
       const canvas = await html2canvas(exportRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#0a0f0a"
+        backgroundColor: "#0C2D26"
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -126,7 +126,7 @@ export default function RadarResultPage() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Radar_Talmidim_${userName.replace(/\s+/g, "_")}.pdf`);
+      pdf.save(`Radar_ROTA29_${userName.replace(/\s+/g, "_")}.pdf`);
     } catch (err) {
       console.error("Erro ao gerar PDF:", err);
       alert("Houve um erro ao gerar o PDF.");
@@ -136,20 +136,20 @@ export default function RadarResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] text-[#eaddc5] flex flex-col items-center pb-24 font-sans">
-      <div className="w-full bg-[#111812] pt-12 pb-8 px-6 text-center border-b border-[#c69b5c]/10">
+    <div className="min-h-screen bg-[#0C2D26] text-[#E9DFCE] flex flex-col items-center pb-24 font-sans">
+      <div className="w-full bg-[#12382F] pt-12 pb-8 px-6 text-center border-b border-[#C79A5B]/10">
         <h1 className="text-[28px] font-serif font-bold text-white mb-2">Seu Radar</h1>
-        <p className="text-[#eaddc5]/70 text-[14px]">
+        <p className="text-[#E9DFCE]/70 text-[14px]">
           {previousScores ? "Veja a sua evolução comparada ao seu primeiro radar." : "Diagnóstico da sua vida espiritual hoje."}
         </p>
         {!previousScores && (
-          <p className="text-[#eaddc5]/50 text-[12px] italic mt-2 max-w-[320px] mx-auto leading-relaxed">
+          <p className="text-[#E9DFCE]/50 text-[12px] italic mt-2 max-w-[320px] mx-auto leading-relaxed">
             Este resultado representa apenas seu ponto de partida. Todo discípulo está em processo de crescimento — receba este diagnóstico como um convite para caminhar com perseverança.
           </p>
         )}
 
-        <div className="mt-6 inline-flex flex-col items-center bg-[#c69b5c]/10 border border-[#c69b5c]/30 rounded-2xl px-6 py-3">
-          <span className="text-[12px] font-bold uppercase tracking-widest text-[#c69b5c] mb-1">Pontuação Total</span>
+        <div className="mt-6 inline-flex flex-col items-center bg-[#C79A5B]/10 border border-[#C79A5B]/30 rounded-2xl px-6 py-3">
+          <span className="text-[12px] font-bold uppercase tracking-widest text-[#C79A5B] mb-1">Pontuação Total</span>
           <div className="flex items-end gap-2">
             <span className="text-[32px] font-bold text-white leading-none">{totalScore}</span>
             {previousTotal !== null && (
@@ -158,13 +158,13 @@ export default function RadarResultPage() {
               </span>
             )}
           </div>
-          <span className="text-[12px] text-[#eaddc5]/50 mt-1">de 105 possíveis</span>
+          <span className="text-[12px] text-[#E9DFCE]/50 mt-1">de 105 possíveis</span>
         </div>
       </div>
 
       <div className="w-full max-w-[500px] px-6 mt-8 flex flex-col items-center animate-in zoom-in-95 duration-1000">
 
-      <div ref={exportRef} className="w-full flex flex-col items-center bg-[#0a0f0a] p-2">
+      <div ref={exportRef} className="w-full flex flex-col items-center bg-[#0C2D26] p-2">
         <h2 className="text-[16px] font-serif font-bold text-white mb-4">Radar Discipular de {userName}</h2>
         {/* Radar Chart */}
         <div className="relative w-full aspect-square max-w-[350px] mb-8">
@@ -202,16 +202,16 @@ export default function RadarResultPage() {
             {/* Data Polygon */}
             <polygon 
               points={dataPolygon} 
-              fill="#c69b5c" 
+              fill="#C79A5B" 
               fillOpacity="0.3" 
-              stroke="#c69b5c" 
+              stroke="#C79A5B" 
               strokeWidth="2" 
               strokeLinejoin="round" 
             />
             
             {/* Data points */}
             {dataPoints.map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r="4" fill="#c69b5c" />
+              <circle key={i} cx={p.x} cy={p.y} r="4" fill="#C79A5B" />
             ))}
 
             {/* Labels */}
@@ -226,7 +226,7 @@ export default function RadarResultPage() {
                   y={p.y} 
                   textAnchor="middle" 
                   alignmentBaseline="middle"
-                  fill="#eaddc5"
+                  fill="#E9DFCE"
                   fontSize="10"
                   fontWeight="bold"
                   className="opacity-90"
@@ -240,8 +240,8 @@ export default function RadarResultPage() {
         </div>
 
         {/* Detailed Scores */}
-        <div className="w-full bg-[#111812] border border-[#2a302a] rounded-[24px] p-6 mb-8">
-          <h3 className="text-[14px] font-bold text-[#c69b5c] uppercase tracking-widest mb-6 border-b border-[#2a302a] pb-4">Detalhamento</h3>
+        <div className="w-full bg-[#12382F] border border-[#2a302a] rounded-[24px] p-6 mb-8">
+          <h3 className="text-[14px] font-bold text-[#C79A5B] uppercase tracking-widest mb-6 border-b border-[#2a302a] pb-4">Detalhamento</h3>
           <div className="space-y-4">
             {radarAreas.map((area, i) => {
               const score = scores[i];
@@ -259,12 +259,12 @@ export default function RadarResultPage() {
                           {delta > 0 ? "+" : ""}{delta}
                         </span>
                       )}
-                      <span className="text-[13px] font-bold text-[#eaddc5]/80">{score}/15</span>
+                      <span className="text-[13px] font-bold text-[#E9DFCE]/80">{score}/15</span>
                     </div>
                   </div>
-                  <div className="w-full bg-[#0a0f0a] h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-[#0C2D26] h-1.5 rounded-full overflow-hidden">
                     <div 
-                      className="bg-gradient-to-r from-[#d5b080] to-[#c69b5c] h-full rounded-full"
+                      className="bg-gradient-to-r from-[#C79A5B] to-[#C79A5B] h-full rounded-full"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -277,12 +277,12 @@ export default function RadarResultPage() {
         {/* DIAGNÓSTICO REAL — não é o gráfico, é a leitura das combinações
             entre áreas, adaptada diretamente do capítulo "Radar Discipular"
             do livro (não é texto genérico). */}
-        <div className="w-full bg-[#111812] border border-[#2a302a] rounded-[24px] p-6 mb-8">
-          <h3 className="text-[14px] font-bold text-[#c69b5c] uppercase tracking-widest mb-2 border-b border-[#2a302a] pb-4">Seu diagnóstico</h3>
+        <div className="w-full bg-[#12382F] border border-[#2a302a] rounded-[24px] p-6 mb-8">
+          <h3 className="text-[14px] font-bold text-[#C79A5B] uppercase tracking-widest mb-2 border-b border-[#2a302a] pb-4">Seu diagnóstico</h3>
 
           <div className="grid grid-cols-2 gap-4 mt-4 mb-6">
             <div>
-              <span className="block text-[11px] font-bold uppercase tracking-widest text-[#eaddc5]/50 mb-2">Pontos mais fortes</span>
+              <span className="block text-[11px] font-bold uppercase tracking-widest text-[#E9DFCE]/50 mb-2">Pontos mais fortes</span>
               <ul className="space-y-1">
                 {diagnostico.pontosFortes.map((n) => (
                   <li key={n} className="text-[13px] text-white font-medium">{n}</li>
@@ -290,7 +290,7 @@ export default function RadarResultPage() {
               </ul>
             </div>
             <div>
-              <span className="block text-[11px] font-bold uppercase tracking-widest text-[#eaddc5]/50 mb-2">Pontos mais fracos</span>
+              <span className="block text-[11px] font-bold uppercase tracking-widest text-[#E9DFCE]/50 mb-2">Pontos mais fracos</span>
               <ul className="space-y-1">
                 {diagnostico.pontosFracos.map((n) => (
                   <li key={n} className="text-[13px] text-white font-medium">{n}</li>
@@ -303,7 +303,7 @@ export default function RadarResultPage() {
             {diagnostico.combinacoes.map((insight) => (
               <div key={insight.titulo} className="border-t border-[#2a302a] pt-4">
                 <h4 className="text-[14px] font-bold text-white mb-1.5">{insight.titulo}</h4>
-                <p className="text-[13px] text-[#eaddc5]/80 leading-relaxed">{insight.texto}</p>
+                <p className="text-[13px] text-[#E9DFCE]/80 leading-relaxed">{insight.texto}</p>
               </div>
             ))}
           </div>
@@ -313,10 +313,10 @@ export default function RadarResultPage() {
       <button
         onClick={generatePDF}
         disabled={generating}
-        className="w-full bg-[#111812] border border-[#c69b5c]/40 text-[#c69b5c] py-3.5 rounded-[16px] font-bold active:scale-95 transition-all flex items-center justify-center gap-2 mb-8 disabled:opacity-50"
+        className="w-full bg-[#12382F] border border-[#C79A5B]/40 text-[#C79A5B] py-3.5 rounded-[16px] font-bold active:scale-95 transition-all flex items-center justify-center gap-2 mb-8 disabled:opacity-50"
       >
         {generating ? (
-          <div className="w-4 h-4 border-2 border-[#c69b5c]/30 border-t-[#c69b5c] rounded-full animate-spin"></div>
+          <div className="w-4 h-4 border-2 border-[#C79A5B]/30 border-t-[#C79A5B] rounded-full animate-spin"></div>
         ) : (
           <Download size={18} />
         )}
@@ -326,15 +326,15 @@ export default function RadarResultPage() {
         {/* REFLEXÃO — etapa Radar -> Diagnóstico -> Reflexão -> PDD.
             Perguntas adaptadas das perguntas de reflexão do livro. Salva
             local (sem precisar de tabela nova no banco). */}
-        <div className="w-full bg-[#111812] border border-[#2a302a] rounded-[24px] p-6 mb-8">
-          <h3 className="text-[14px] font-bold text-[#c69b5c] uppercase tracking-widest mb-4 border-b border-[#2a302a] pb-4">Reflexão</h3>
+        <div className="w-full bg-[#12382F] border border-[#2a302a] rounded-[24px] p-6 mb-8">
+          <h3 className="text-[14px] font-bold text-[#C79A5B] uppercase tracking-widest mb-4 border-b border-[#2a302a] pb-4">Reflexão</h3>
           <div className="space-y-5">
             <div>
               <label className="block text-[13px] text-white font-medium mb-2">Dentre seus pontos fortes e fracos, qual mais te surpreendeu ou incomodou — positiva ou negativamente? Por quê?</label>
               <textarea
                 defaultValue={typeof window !== "undefined" ? localStorage.getItem("talmidim-radar-reflexao-1") || "" : ""}
                 onChange={(e) => localStorage.setItem("talmidim-radar-reflexao-1", e.target.value)}
-                className="w-full min-h-[80px] bg-[#0a0f0a] border border-[#2a302a] rounded-xl p-3 text-[13px] text-[#eaddc5] placeholder:text-[#eaddc5]/30 focus:outline-none focus:border-[#c69b5c]/50 resize-none"
+                className="w-full min-h-[80px] bg-[#0C2D26] border border-[#2a302a] rounded-xl p-3 text-[13px] text-[#E9DFCE] placeholder:text-[#E9DFCE]/30 focus:outline-none focus:border-[#C79A5B]/50 resize-none"
                 placeholder="Escreva aqui..."
               />
             </div>
@@ -343,7 +343,7 @@ export default function RadarResultPage() {
               <textarea
                 defaultValue={typeof window !== "undefined" ? localStorage.getItem("talmidim-radar-reflexao-2") || "" : ""}
                 onChange={(e) => localStorage.setItem("talmidim-radar-reflexao-2", e.target.value)}
-                className="w-full min-h-[80px] bg-[#0a0f0a] border border-[#2a302a] rounded-xl p-3 text-[13px] text-[#eaddc5] placeholder:text-[#eaddc5]/30 focus:outline-none focus:border-[#c69b5c]/50 resize-none"
+                className="w-full min-h-[80px] bg-[#0C2D26] border border-[#2a302a] rounded-xl p-3 text-[13px] text-[#E9DFCE] placeholder:text-[#E9DFCE]/30 focus:outline-none focus:border-[#C79A5B]/50 resize-none"
                 placeholder="Escreva aqui..."
               />
             </div>
@@ -352,7 +352,7 @@ export default function RadarResultPage() {
 
         <button
           onClick={() => router.push("/pdd/intro")}
-          className="w-full bg-gradient-to-r from-[#d5b080] to-[#b38a53] text-[#111812] py-4 rounded-[16px] font-bold shadow-[0_10px_25px_rgba(198,155,92,0.2)] active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-[#C79A5B] to-[#b38a53] text-[#12382F] py-4 rounded-[16px] font-bold shadow-[0_10px_25px_rgba(198,155,92,0.2)] active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           Criar meu PDD Digital <ArrowRight size={20} />
         </button>

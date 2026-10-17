@@ -2,8 +2,8 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "./utils/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  // updateSession is the standard Supabase helper to refresh tokens
-  // and check if user has an active session
+  // Reabertura aprovada: atualização de sessão e autorização por igreja no servidor.
+  // A liberação efetiva da jornada depende de rota29_pilot_access no banco.
   return await updateSession(request);
 }
 

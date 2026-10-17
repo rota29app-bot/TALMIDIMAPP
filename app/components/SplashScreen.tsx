@@ -1,59 +1,56 @@
 "use client";
+import { useEffect, useState, useCallback, useRef } from "react";
 
-import { useEffect, useState } from "react";
-
-const SPLASH_SEEN_KEY = "talmidim-splash-seen";
-
+// Primeiro render já inclui o vídeo; o poster evita tela verde.
+const SEEN = "rota29-splash-seen";
+const SRC = "/brand/Splash%20Rota29.mp4";
 export default function SplashScreen() {
-  // Só decide se mostra depois de checar o localStorage (evita mostrar de novo
-  // em cada navegação/retorno do login do Google, que recarrega a página toda).
-  const [show, setShow] = useState(false);
-  const [checked, setChecked] = useState(false);
-
-  useEffect(() => {
-    // sessionStorage (não localStorage): some quando fecha a aba/navegador,
-    // então o vídeo volta a aparecer toda vez que o app é aberto de novo —
-    // só não repete no meio do mesmo login (ida e volta do Google).
-    const alreadySeen = typeof window !== "undefined" && sessionStorage.getItem(SPLASH_SEEN_KEY) === "1";
-    setShow(!alreadySeen);
-    setChecked(true);
+  const [visible, setVisible] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundError, setSoundError] = useState(false);
+  const finish = useCallback(() => {
+    try { sessionStorage.setItem(SEEN, "1"); } catch {}
+    setVisible(false);
   }, []);
-
   useEffect(() => {
-    if (!show) return;
-    // Fallback absoluto de 15 segundos caso o vídeo trave
-    const t = setTimeout(() => finish(), 15000);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [show]);
-
-  const finish = () => {
-    sessionStorage.setItem(SPLASH_SEEN_KEY, "1");
-    setShow(false);
+    try { if (sessionStorage.getItem(SEEN) === "1") { setVisible(false); return; } }
+    catch {}
+    const timer = setTimeout(finish, 13500);
+    return () => clearTimeout(timer);
+  }, [finish]);
+  const listenWithSound = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+    try {
+      // Navegadores móveis proíbem autoplay com áudio. O toque do usuário
+      // habilita o som e reinicia a vinheta para não perder a narração.
+      video.pause();
+      video.currentTime = 0;
+      video.muted = false;
+      video.volume = 1;
+      await video.play();
+      setSoundEnabled(true);
+      setSoundError(false);
+    } catch (error) {
+      console.warn("ROTA29: áudio depende de permissão de reprodução", error);
+      setSoundError(true);
+    }
   };
-
-  if (!checked || !show) return null;
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black">
-      <video
-        src="/splash_v2.mp4"
-        autoPlay
-        muted
-        loop={false}
-        playsInline
-        controls={false}
-        onEnded={finish}
-        onError={finish}
-        className="w-full h-full object-cover"
-      />
-
-      <button
-        onClick={finish}
-        className="absolute bottom-10 right-8 z-50 text-white bg-black/50 px-6 py-3 rounded-full text-sm uppercase tracking-widest font-bold backdrop-blur-md border border-white/30 hover:bg-white/20 transition-all"
-      >
-        PULAR
-      </button>
-    </div>
-  );
+  if (!visible) return null;
+  return <div role="dialog" aria-label="Abertura ROTA29"
+    className="fixed inset-0 z-[9999] bg-black overflow-hidden">
+    <video ref={videoRef} src={SRC} autoPlay muted playsInline preload="auto"
+      poster="/brand/rota29-splash-poster.svg"
+      loop={false} controls={false} onEnded={finish} onError={finish}
+      className="absolute inset-0 w-full h-full object-cover" />
+    {!soundEnabled && <button type="button" onClick={() => void listenWithSound()}
+      className="absolute bottom-7 left-6 z-20 rounded-full border border-[#C79A5B]/70 bg-black/65 px-4 py-3 text-xs font-bold tracking-wide text-white">
+      {soundError ? "TENTAR SOM NOVAMENTE" : "ATIVAR SOM"}
+    </button>}
+    <button onClick={finish} type="button"
+      className="absolute bottom-7 right-6 z-20 rounded-full border border-[#C79A5B]/70 bg-black/65 px-5 py-3 text-xs font-bold tracking-widest text-white">
+      PULAR
+    </button>
+  </div>;
 }
