@@ -3,6 +3,7 @@ import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../../utils/supabase/client";
 import type {PastoralData} from "../page";
+import PastoralSignOut from "../PastoralSignOut";
 import {ArrowLeft,Users} from "lucide-react";
 export default function Members() {
  const router=useRouter();
@@ -25,9 +26,12 @@ export default function Members() {
   return()=>{active=false};
  },[router]);
  return <main className="min-h-screen bg-bg-main text-text-main pb-16">
-  <header className="px-5 py-5 border-b border-accent/20 bg-bg-card flex items-center gap-3">
-   <button aria-label="Voltar ao painel pastoral" onClick={()=>router.push("/pastor")}><ArrowLeft/></button>
-   <Users/><h1 className="font-bold text-lg">Membros · ROTA29</h1>
+  <header className="px-5 py-4 border-b border-accent/20 bg-bg-card space-y-3">
+    <div className="flex items-center gap-3">
+      <button type="button" aria-label="Voltar ao painel pastoral" onClick={()=>router.push("/pastor")} className="p-1"><ArrowLeft/></button>
+      <Users/><h1 className="font-bold text-lg">Membros · ROTA29</h1>
+    </div>
+    <div className="flex justify-end"><PastoralSignOut/></div>
   </header>
   <div className="max-w-4xl mx-auto p-5 space-y-4">
   {loading?<p>Carregando lista…</p>:error?<p role="alert">{error}</p>:data&&<>

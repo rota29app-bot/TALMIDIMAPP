@@ -3,6 +3,7 @@ import {useCallback,useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
 import PastoralApprovals from "./PastoralApprovals";
+import PastoralSignOut from "./PastoralSignOut";
 import {Building2,Users,TrendingUp,CalendarDays,BellRing,FileDown,ArrowRight,ShieldCheck,RefreshCw,CheckCircle2} from "lucide-react";
 
 export type PastoralMember={
@@ -84,7 +85,7 @@ export default function PastorDashboard(){
    ],"rota29-acompanhamento-"+new Date().toISOString().slice(0,10)+".csv");
  };
  if(loading)return <main className="min-h-screen flex items-center justify-center bg-bg-main text-text-main" role="status">Carregando painel pastoral…</main>;
- if(error&&!data)return <main className="min-h-screen bg-bg-main p-7 text-text-main space-y-4"><h1 className="text-2xl font-bold">Painel pastoral</h1><p role="alert">{error}</p><button className="underline" onClick={()=>void refresh()}>Tentar novamente</button></main>;
+ if(error&&!data)return <main className="min-h-screen bg-bg-main p-7 text-text-main space-y-4"><h1 className="text-2xl font-bold">Painel pastoral</h1><p role="alert">{error}</p><button className="underline" onClick={()=>void refresh()}>Tentar novamente</button><PastoralSignOut/></main>;
  if(!data)return null;
  const t=data.totals;
  const cards=[
@@ -96,13 +97,24 @@ export default function PastorDashboard(){
    {name:"Precisam de atenção",value:count(t.inactive),icon:BellRing}
  ];
  return <main className="min-h-screen bg-bg-main text-text-main pb-24">
-   <header className="sticky top-0 z-20 border-b border-accent/20 bg-bg-card px-5 py-4 flex items-center justify-between">
-    <div className="flex items-center gap-3"><Building2 size={25} className="text-accent"/><div>
-      <h1 className="font-bold text-lg">ROTA29 · Painel Pastoral</h1>
-      <p className="text-text-muted text-xs">{data.igreja}</p>
-    </div></div>
-    <button aria-label="Atualizar indicadores" onClick={()=>void refresh()}><RefreshCw size={20}/></button>
-   </header>
+   <header className="sticky top-0 z-20 border-b border-accent/20 bg-bg-card px-5 py-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Building2 size={25} className="shrink-0 text-accent"/>
+          <div className="min-w-0">
+            <h1 className="font-bold text-lg">ROTA29 · Painel Pastoral</h1>
+            <p className="text-text-muted text-xs truncate">{data.igreja}</p>
+          </div>
+        </div>
+        <button type="button" className="shrink-0 p-2" aria-label="Atualizar indicadores" onClick={()=>void refresh()}>
+          <RefreshCw size={20}/>
+        </button>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-text-muted max-w-[16rem]">Perfil pastoral ativo. Para trocar de conta, saia primeiro.</p>
+        <PastoralSignOut/>
+      </div>
+    </header>
    <div className="mx-auto max-w-5xl px-5 py-7 space-y-7">
      <PastoralApprovals/>
      <div className="rounded-2xl border border-accent/30 bg-bg-card p-5 space-y-2">
