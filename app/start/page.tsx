@@ -36,6 +36,8 @@ const LeafIcon = () => (
 import { createClient } from "../../utils/supabase/client";
 import { isAdminTestMode } from "../../utils/admin-test-mode";
 
+const WELCOME_POSTERS_READY = false; // Ativar apenas após publicar as DUAS artes originais.
+
 export default function StartPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -52,6 +54,8 @@ export default function StartPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [adminJourney, setAdminJourney] = useState(false);
+  const [welcomeProfile,setWelcomeProfile] = useState<"male"|"female"|null>(null);
+  const [welcomePosterError,setWelcomePosterError] = useState(false);
 
   // Depois de Google: vídeo da caminhada, escolha de perfil, onboarding.
   // Não aguarda um SIGNED_IN que já aconteceu na rota de callback.
@@ -130,7 +134,7 @@ export default function StartPage() {
     }
   };
 
-  const selectProfile = async (profile: string) => {
+  const selectProfile = async (profile: "male" | "female") => {
     if (isTransitioning) return;
     setErrorMsg("");
     const { error } = await supabase.auth.updateUser({ data: { profile } });
@@ -138,14 +142,15 @@ export default function StartPage() {
       setErrorMsg("Não foi possível salvar o perfil. Tente novamente.");
       return;
     }
-    localStorage.setItem("talmidim-profile", profile);
-    setIsTransitioning(true);
-
-    // Após escolher o perfil: vídeo do rapaz caminhando.
-    setTimeout(() => {
-      setIsTransitioning(false);
+    localStorage.setItem("talmidim-profile",profile);
+    // Exibir somente após os dois arquivos originais serem publicados no repositório.
+    if (WELCOME_POSTERS_READY) {
+      setWelcomeProfile(profile);
+      setWelcomePosterError(false);
+      setStep(6);
+    } else {
       setStep(4);
-    }, 450);
+    }
   };
 
   if (!mounted) return null;
@@ -288,6 +293,40 @@ export default function StartPage() {
           PULAR
         </button>
       </div>}
+
+      {/* --- PASSO 6: BOAS-VINDAS PERSONALIZADAS --- */}
+      {step===6 && welcomeProfile && (
+        <div className="relative z-20 flex h-full w-full max-w-[460px] flex-col items-center bg-[#F5E7D6]">
+          <div className="relative w-full flex-1 min-h-0 overflow-hidden">
+            {!welcomePosterError ? (
+              <Image
+                src={welcomeProfile==="male"?"/brand/rota29-bem-vindo.jpg":"/brand/rota29-bem-vinda.jpg"}
+                alt={welcomeProfile==="male"?"Bem-vindo ao ROTA29":"Bem-vinda ao ROTA29"}
+                fill
+                priority
+                sizes="(max-width: 460px) 100vw, 460px"
+                className="object-contain"
+                onError={()=>setWelcomePosterError(true)}
+              />
+            ):(
+              <div className="h-full w-full flex flex-col items-center justify-center px-6 py-8 gap-5 text-center">
+                <Image src="/brand/rota29-logo.svg" width={220} height={100} alt="ROTA29 — Discipulado no cotidiano" className="h-auto w-48" priority/>
+                <h1 className="font-serif text-4xl font-bold text-[#0F3D33]">
+                  {welcomeProfile==="male"?"Bem-vindo":"Bem-vinda"}
+                </h1>
+                <p className="text-lg text-[#0F3D33]">Você deu um passo importante. Siga em frente na jornada de discipulado no cotidiano.</p>
+                <Image src="/brand/rota29-splash-poster.svg" width={300} height={300} alt="" className="max-h-[36dvh] w-auto object-contain"/>
+              </div>
+            )}
+          </div>
+          <div className="w-full shrink-0 bg-[#0F3D33] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <button type="button" onClick={finishWalkingVideo}
+              className="w-full min-h-12 rounded-2xl bg-[#FFF4E0] text-[#0F3D33] font-bold tracking-wide shadow-lg">
+              Continuar minha jornada
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* --- PASSO 5: GÊNERO --- */}
       {step === 5 && (
