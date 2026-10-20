@@ -36,7 +36,7 @@ const LeafIcon = () => (
 import { createClient } from "../../utils/supabase/client";
 import { isAdminTestMode } from "../../utils/admin-test-mode";
 
-const WELCOME_POSTERS_READY = false; // Ativar apenas após publicar as DUAS artes originais.
+const WELCOME_POSTERS_READY = true; // Ativar apenas após publicar as DUAS artes originais.
 
 export default function StartPage() {
   const router = useRouter();
