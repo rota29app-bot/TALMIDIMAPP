@@ -12,5 +12,10 @@ export async function GET(request: Request) {
     console.error("ROTA29 Google OAuth:", error.message);
     return NextResponse.redirect(new URL("/start?auth_error=exchange_failed", origin));
   }
-  return NextResponse.redirect(new URL("/start?after_auth=1", origin));
+  // Preserva o convite específico durante o retorno do Google.
+  const invite = searchParams.get("convite")?.trim().toUpperCase();
+  const target = new URL("/start", origin);
+  target.searchParams.set("after_auth", "1");
+  if (invite && /^[A-F0-9]{16}$/.test(invite)) target.searchParams.set("convite", invite);
+  return NextResponse.redirect(target);
 }
