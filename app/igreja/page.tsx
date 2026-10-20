@@ -2,6 +2,7 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
+import InvitationJoin from "./InvitationJoin";
 import {Building2,Copy,Users,ShieldCheck,Clock3} from "lucide-react";
 
 type Church={
@@ -23,6 +24,7 @@ export default function RegistroIgreja(){
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
  const [code,setCode]=useState("");
+ const [invitedCode,setInvitedCode]=useState("");
  const formRef=useRef<HTMLFormElement|null>(null);
  useEffect(()=>{
   if(!mode)return;
@@ -37,8 +39,10 @@ export default function RegistroIgreja(){
  };
  const load=useCallback(async()=>{
   const db=createClient();
+  const incoming=new URLSearchParams(window.location.search).get("convite");
+  if(incoming!==null)setInvitedCode(incoming.trim().toUpperCase()||"INVALID");
   const {data:{user}}=await db.auth.getUser();
-  if(!user){router.replace("/start");return;}
+  if(!user){router.replace("/start"+(incoming!==null?"?convite="+encodeURIComponent(incoming):""));return;}
   setCurrentEmail(user.email||"");
   const [membership,permission]=await Promise.all([db.rpc("pilot_my_church"),db.rpc("rota29_pilot_access")]);
   if(membership.error||permission.error){
@@ -81,6 +85,7 @@ export default function RegistroIgreja(){
   window.scrollTo({top:0,behavior:'smooth'});
  };
  if(loading)return <main className="min-h-screen grid place-items-center bg-[#E9DFCE] text-[#0F3D33]">Conferindo autorização…</main>;
+ if(invitedCode)return <InvitationJoin code={invitedCode} church={church} refresh={load}/>;
  const pastor=church?.role==="pastor"&&church.pilot;
  const member=church?.role==="membro"&&church.pilot&&church.igreja_id;
  return <main className="min-h-screen bg-[#E9DFCE] text-[#0F3D33] p-5">
