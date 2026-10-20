@@ -3,6 +3,7 @@
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
+import CollectiveRadar from "./CollectiveRadar";
 import {ArrowLeft,Users,Plus,RefreshCw,UserRound,MessageSquareText,AlertCircle,ShieldCheck,FolderArchive,Undo2,Save} from "lucide-react";
 
 type PG={id:string;name:string;leader_id:string|null;leader_name:string;active:boolean;member_count:number};
@@ -107,6 +108,8 @@ export default function PequenosGruposPage(){
     <div className="bg-white rounded-2xl border border-[#E8D8BF] p-4"><UserRound className="text-[#9A6B31]" size={20}/><strong className="block text-3xl mt-2">{isPastor?members.filter(m=>m.group_id).length:members.length}</strong><span className="text-xs">Acompanhados</span></div>
     <div className="col-span-2 sm:col-span-1 bg-white rounded-2xl border border-[#E8D8BF] p-4"><AlertCircle className="text-[#9A6B31]" size={20}/><strong className="block text-3xl mt-2">{attention}</strong><span className="text-xs">Sem avançar há {overview.alert_after_days} dias</span></div>
    </section>
+
+   <CollectiveRadar pastor={isPastor} groups={groups}/>
 
    {isPastor&&<section className="bg-white rounded-2xl border border-[#E8D8BF] p-5 space-y-3">
      <h2 className={titleClass}>Criar novo pequeno grupo</h2>
