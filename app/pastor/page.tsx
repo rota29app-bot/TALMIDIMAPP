@@ -125,7 +125,7 @@ export default function PastorDashboard(){
         <strong>Participantes: {capacity.approved_members}</strong>
         <span className="rounded-full bg-[#0F3D33] px-3 py-1 text-xs font-bold text-white">{capacity.unlimited?"Sem limite":`Limite: ${capacity.member_limit}`}</span>
         {capacity.unlimited&&<span className="text-xs text-text-muted">Cada participante ainda precisa ser aprovado pelo pastor.</span>}
-       </div>
+       </div>}
      </div>
      <section aria-label="Indicadores da igreja" className="grid grid-cols-2 md:grid-cols-3 gap-3">
        {cards.map(c=><div key={c.name} className="border border-accent/20 rounded-2xl bg-bg-card p-4"><c.icon size={20} className="text-accent"/><p className="text-3xl font-bold mt-3">{c.value}</p><p className="text-xs text-text-muted mt-1">{c.name}</p></div>)}
