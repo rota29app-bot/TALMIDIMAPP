@@ -6,7 +6,7 @@ import { createClient } from "../../utils/supabase/client";
 import { getStage, stageOrder, badgeNames } from "../data";
 import { GLOBAL_STAGE_KEY, todayEpochDay } from "../stage/[id]/PracticesTab";
 import BottomNav from "../components/BottomNav";
-import { Sun, BookText, Trophy, ChevronRight, Flame } from "lucide-react";
+import { Sun, BookText, Trophy, ChevronRight, Flame, Users } from "lucide-react";
 
 export default function HojePage() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function HojePage() {
   const [tsdDone, setTsdDone] = useState(false);
   const [intercessionDone, setIntercessionDone] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [canLeadPG, setCanLeadPG] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -33,6 +34,10 @@ export default function HojePage() {
 
       const fullName = session.user?.user_metadata?.full_name || session.user?.user_metadata?.name;
       if (fullName) setUserName(String(fullName).split(" ")[0]);
+
+      // O acesso ao PG é separado da jornada individual e autorizado no servidor.
+      const {data: pgContext} = await supabase.rpc("rota29_pg_context");
+      if(pgContext?.role === "leader") setCanLeadPG(true);
 
       // Mesmas guardas do Mapa: sem Radar ou sem PDD, não é "Hoje" ainda —
       // é Fase 0 que falta completar.
@@ -233,6 +238,10 @@ export default function HojePage() {
           </div>
         </div>
 
+        {canLeadPG && <button
+          type="button" onClick={()=>router.push("/pgm")}
+          className="w-full rounded-2xl border border-[#C79A5B]/40 bg-[#0F3D33] text-[#F8F5F0] px-5 py-4 text-left flex items-center gap-3"
+        ><Users size={21} className="text-[#C79A5B]"/><span className="flex-1"><strong className="block text-sm">Meu Pequeno Grupo</strong><span className="text-xs text-[#F8F5F0]/70">Acompanhar participantes e registrar cuidado</span></span><ChevronRight size={18}/></button>}
         {/* Atalhos rápidos */}
         <div className="grid grid-cols-2 gap-3">
           <button
