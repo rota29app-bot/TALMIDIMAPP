@@ -149,14 +149,8 @@ function StagePageContent() {
         !!stageRes.data?.specific_practice_done
     );
 
-    const { data: scoreData } = await supabase
-      .from("user_station_scores")
-      .select("score")
-      .eq("user_id", session.user.id)
-      .eq("stage_id", id)
-      .single();
-
-    setScoreDone(!!scoreData && scoreData.score !== null && scoreData.score !== undefined);
+    const {data: scoreData,error: scoreError}=await supabase.rpc("rota29_my_daily_assessment",{p_stage:id,p_day:dayIndex});
+    setScoreDone(!scoreError && typeof scoreData?.score==="number");
   };
 
   useEffect(() => {
@@ -585,7 +579,7 @@ function StagePageContent() {
                       // Ordem do ET-011: Vídeo, Artigo, Reflexão, Prática,
                       // Diário, Oração/Conclusão. Práticas sempre entra (é
                       // hábito diário); Pontuação só entra se ainda não foi
-                      // feita nesta estação (é avaliação semanal, não diária).
+                      // feita neste dia (é avaliação diária).
                       type StepKey = "video" | "artigo" | "revisao" | "reflexao" | "desafio" | "timeline" | "gratidao" | "memoria" | "celebracao" | "praticas" | "pontuacao" | "diario" | "conclusao";
                       const steps: StepKey[] = [];
                       if (currentDayData.videoRoteiro) steps.push("video");
@@ -849,7 +843,7 @@ function StagePageContent() {
 
                           {step === "pontuacao" && (
                             <div className="mb-6">
-                              <ScoreTab id={id} onChange={checkCompletionStatus} />
+                              <ScoreTab id={id} dayIndex={dayIndex} onChange={checkCompletionStatus} />
                             </div>
                           )}
 
@@ -1077,13 +1071,13 @@ function StagePageContent() {
 
                     {/* PRÁTICAS — dias de prática contínua (8-21) não têm
                         carrossel, então Práticas (e Pontuação, só na
-                        primeira vez da estação) entram direto na sequência. */}
+                        primeira vez no dia) entram direto na sequência. */}
                     <div className="mb-6">
                       <PracticesTab id={id} dayIndex={dayIndex} onChange={checkCompletionStatus} />
                     </div>
                     {!scoreDone && (
                       <div className="mb-6">
-                        <ScoreTab id={id} onChange={checkCompletionStatus} />
+                        <ScoreTab id={id} dayIndex={dayIndex} onChange={checkCompletionStatus} />
                       </div>
                     )}
                   </>
