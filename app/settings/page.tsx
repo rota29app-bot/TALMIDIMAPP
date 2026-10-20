@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [perfilSalvo, setPerfilSalvo] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPastor, setIsPastor] = useState(false);
+  const [isLeaderPG, setIsLeaderPG] = useState(false);
 
   useEffect(() => {
     const carregarPerfil = async () => {
@@ -42,6 +43,8 @@ export default function SettingsPage() {
         .select("estado, cidade, idade, role, is_super_admin")
         .eq("user_id", session.user.id)
         .single();
+      const {data:pgAccess}=await supabase.rpc("rota29_pg_context");
+      setIsLeaderPG(pgAccess?.role==="leader");
       if (data) {
         setIsAdmin(data.is_super_admin === true);
         setIsPastor(data.role === "pastor");
@@ -142,6 +145,11 @@ export default function SettingsPage() {
             {isPastor && <button onClick={() => router.push("/igreja")} className="block w-full border border-accent/30 py-3 rounded-xl font-bold">Copiar convite da minha igreja</button>}
           </div>}
 
+          {isLeaderPG && <div className="bg-bg-card border border-accent/30 rounded-2xl p-5 space-y-3">
+            <h2 className="font-bold flex items-center gap-2"><Users size={19}/> Liderança de Pequeno Grupo</h2>
+            <p className="text-sm text-text-muted">Acompanhe os participantes e registre ações de cuidado.</p>
+            <button onClick={() => router.push("/pgm")} className="block w-full bg-[#0F3D33] text-white py-3 rounded-xl font-bold">Abrir meu PG</button>
+          </div>}
           {!isAdmin && !isPastor && <DailyPrayerSettings />}
 
           {/* Perfil: estado, cidade, idade */}
