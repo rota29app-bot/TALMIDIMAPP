@@ -3,6 +3,7 @@ import {useCallback,useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
 import PastoralApprovals from "./PastoralApprovals";
+import CollectiveRadar from "../pgm/CollectiveRadar";
 import PastoralSignOut from "./PastoralSignOut";
 import {Building2,Users,TrendingUp,CalendarDays,BellRing,FileDown,ArrowRight,ShieldCheck,RefreshCw,CheckCircle2} from "lucide-react";
 import {enablePastorJourneyMode} from "../../utils/pastor-journey-mode";
@@ -157,6 +158,7 @@ export default function PastorDashboard(){
      <section aria-label="Indicadores da igreja" className="grid grid-cols-2 md:grid-cols-3 gap-3">
        {cards.map(c=><div key={c.name} className="border border-accent/20 rounded-2xl bg-bg-card p-4"><c.icon size={20} className="text-accent"/><p className="text-3xl font-bold mt-3">{c.value}</p><p className="text-xs text-text-muted mt-1">{c.name}</p></div>)}
      </section>
+     <CollectiveRadar pastor />
      <section className="rounded-2xl border border-accent/20 bg-bg-card p-5 space-y-3">
        <h2 className="text-lg font-bold">Engajamento da comunidade</h2>
        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
