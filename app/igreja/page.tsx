@@ -3,6 +3,7 @@ import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
 import InvitationJoin from "./InvitationJoin";
+import InvitationShare from "./InvitationShare";
 import {Building2,Copy,Users,ShieldCheck,Clock3} from "lucide-react";
 
 type Church={
@@ -107,7 +108,7 @@ export default function RegistroIgreja(){
       <p className="text-xs uppercase tracking-wide">Código da igreja</p>
       <strong className="block font-mono tracking-wider break-all">{church.codigo_convite}</strong>
       <button className="flex items-center gap-2 text-sm underline" onClick={async()=>{try{await navigator.clipboard.writeText(church.codigo_convite||"");setNotice("Código copiado.");}catch{setNotice("Copie o código exibido.");}}}><Copy size={16}/> Copiar código</button>
-      <a className="block text-sm underline" target="_blank" rel="noopener noreferrer" href={"https://wa.me/?text="+encodeURIComponent("Convite ROTA29 — Discipulado no cotidiano. Entre em https://rota29-piloto.vercel.app e informe o código da igreja: "+church.codigo_convite+". Sua participação dependerá da aprovação do pastor.")}>Enviar convite pelo WhatsApp</a>
+      <InvitationShare code={church.codigo_convite} name={church.nome}/>
      </div>}
      <button onClick={()=>router.push("/pastor")} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold">Abrir painel pastoral e aprovações</button>
     </>:<><div className="flex gap-2 items-center"><Clock3 size={18}/><strong>Aguardando aprovação da coordenação</strong></div><p className="text-sm">O pastor não pode distribuir convites antes da liberação institucional.</p></>}
