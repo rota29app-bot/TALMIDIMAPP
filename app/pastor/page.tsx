@@ -140,6 +140,11 @@ export default function PastorDashboard(){
     </header>
    <div className="mx-auto max-w-5xl px-5 py-7 space-y-7">
      <PastoralApprovals/>
+     <section className="rounded-2xl border border-accent/30 bg-bg-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+       <div><h2 className="text-lg font-bold flex items-center gap-2"><Users size={20}/> Pequenos Grupos</h2>
+       <p className="text-sm text-text-muted">Crie PGs, defina líderes, organize participantes e registre o cuidado pastoral.</p></div>
+       <button type="button" onClick={()=>router.push("/pgm")} className="shrink-0 rounded-xl bg-[#0F3D33] px-4 py-3 font-bold text-white text-sm">Gerenciar grupos →</button>
+     </section>
      <div className="rounded-2xl border border-accent/30 bg-bg-card p-5 space-y-2">
        <div className="flex gap-2 items-center"><ShieldCheck size={20}/><strong>Plano Liderança · {data.license_status==="pilot"?"Piloto":data.license_status}</strong></div>
        <p className="text-sm text-text-muted">Acompanhamento exclusivo dos membros vinculados à sua igreja. O Radar não mede valor espiritual: os indicadores servem ao cuidado, não à cobrança.</p>
