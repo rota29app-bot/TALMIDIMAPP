@@ -87,7 +87,13 @@ export default function StartPage() {
         setStep(3);
         return;
       }
-      if (params.get("after_auth") === "1") window.history.replaceState(null, "", "/start");
+      const invite = params.get("convite")?.trim().toUpperCase() || "";
+      if (params.get("after_auth") === "1" && !invite) window.history.replaceState(null, "", "/start");
+      // Um convite institucional tem prioridade sobre a escolha genérica de perfil.
+      if (/^[A-F0-9]{16}$/.test(invite)) {
+        router.replace("/igreja?convite=" + encodeURIComponent(invite));
+        return;
+      }
       const testingAsAdmin = access.is_admin && isAdminTestMode(user.id);
       const usingPastorJourney = access.role === "pastor"
         && access.pilot === true
@@ -129,9 +135,14 @@ export default function StartPage() {
   const handleGoogleSignIn = async () => {
     setErrorMsg("");
     setLoading(true);
+    const invite = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("convite")?.trim().toUpperCase()
+      : null;
+    const redirect = typeof window !== "undefined" ? new URL("/auth/callback", window.location.origin) : null;
+    if (redirect && invite && /^[A-F0-9]{16}$/.test(invite)) redirect.searchParams.set("convite", invite);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: typeof window !== "undefined" ? window.location.origin + "/auth/callback" : undefined }
+      options: { redirectTo: redirect?.toString() }
     });
     if (error) {
       setLoading(false);
