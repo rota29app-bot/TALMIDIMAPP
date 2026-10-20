@@ -5,6 +5,7 @@ import {createClient} from "../../utils/supabase/client";
 import PastoralApprovals from "./PastoralApprovals";
 import PastoralSignOut from "./PastoralSignOut";
 import {Building2,Users,TrendingUp,CalendarDays,BellRing,FileDown,ArrowRight,ShieldCheck,RefreshCw,CheckCircle2} from "lucide-react";
+import {enablePastorJourneyMode} from "../../utils/pastor-journey-mode";
 
 export type PastoralMember={
  user_id:string; nome:string; email:string; last_activity:string|null;
@@ -45,6 +46,7 @@ export default function PastorDashboard(){
  const [error,setError]=useState("");
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
+ const [openingJourney,setOpeningJourney]=useState(false);
  const [days,setDays]=useState(21);
  const [notice,setNotice]=useState("");
  const refresh=useCallback(async()=>{
@@ -68,6 +70,26 @@ export default function PastorDashboard(){
    if(failure){setError(failure.message);return;}
    setNotice("Prazo de acompanhamento atualizado para sua igreja.");
    await refresh();
+ };
+ const startPersonalJourney=async()=>{
+   if(openingJourney)return;
+   setOpeningJourney(true);setError("");
+   try{
+     const db=createClient();
+     const {data:{user},error:authError}=await db.auth.getUser();
+     if(authError||!user)throw new Error("Entre novamente para abrir sua jornada pessoal.");
+     const [{data:church,error:churchError},{data:access,error:accessError}]=await Promise.all([
+       db.rpc("pilot_my_church"),db.rpc("rota29_pilot_access")
+     ]);
+     if(churchError||accessError||church?.role!=="pastor"||church?.pilot!==true||!church?.igreja_id||access?.allowed!==true||access?.status!=="pastor"){
+       throw new Error("A jornada pessoal está disponível apenas ao pastor responsável com acesso ativo à igreja.");
+     }
+     if(!enablePastorJourneyMode(user.id))throw new Error("Não foi possível iniciar a jornada nesta aba. Atualize a página e tente novamente.");
+     router.push("/start");
+   }catch(error){
+     setError(error instanceof Error?error.message:"Não foi possível abrir sua jornada pessoal. Tente novamente.");
+     setOpeningJourney(false);
+   }
  };
  const download=()=>{
    if(!data)return;
@@ -113,7 +135,7 @@ export default function PastorDashboard(){
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-text-muted max-w-[16rem]">Perfil pastoral ativo. Para trocar de conta, saia primeiro.</p>
-        <PastoralSignOut/>
+        <div className="flex flex-wrap items-center gap-2"><button type="button" onClick={()=>void startPersonalJourney()} disabled={openingJourney} className="rounded-lg bg-[#0F3D33] px-3 py-2 text-xs font-bold text-white border border-accent disabled:opacity-60">{openingJourney?"Abrindo…":"Fazer minha jornada"}</button><PastoralSignOut/></div>
       </div>
     </header>
    <div className="mx-auto max-w-5xl px-5 py-7 space-y-7">

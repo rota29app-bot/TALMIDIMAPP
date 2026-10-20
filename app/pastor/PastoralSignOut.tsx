@@ -3,6 +3,7 @@
 import {useState} from "react";
 import {LogOut} from "lucide-react";
 import {createClient} from "../../utils/supabase/client";
+import {leavePastorJourneyMode} from "../../utils/pastor-journey-mode";
 
 /**
  * Encerra apenas a sessão atual do Google no ROTA29.
@@ -22,6 +23,7 @@ export default function PastoralSignOut(){
         setSigningOut(false);
         return;
       }
+      leavePastorJourneyMode();
       window.location.replace("/start?logout=1");
     }catch{
       setError("Não foi possível sair da conta. Verifique sua conexão.");

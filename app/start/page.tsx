@@ -35,6 +35,7 @@ const LeafIcon = () => (
 
 import { createClient } from "../../utils/supabase/client";
 import { isAdminTestMode } from "../../utils/admin-test-mode";
+import { isPastorJourneyMode } from "../../utils/pastor-journey-mode";
 
 const WELCOME_POSTERS_READY = true; // Ativar apenas após publicar as DUAS artes originais.
 
@@ -88,6 +89,10 @@ export default function StartPage() {
       }
       if (params.get("after_auth") === "1") window.history.replaceState(null, "", "/start");
       const testingAsAdmin = access.is_admin && isAdminTestMode(user.id);
+      const usingPastorJourney = access.role === "pastor"
+        && access.pilot === true
+        && !!access.igreja_id
+        && isPastorJourneyMode(user.id);
       setAdminJourney(!!testingAsAdmin);
       if (!testingAsAdmin && access.is_admin) {
         router.replace("/admin");
@@ -96,7 +101,8 @@ export default function StartPage() {
       // Quem ainda não tem igreja aprovada precisa apenas escolher
       // "Sou pastor" ou "Sou participante". O login não libera a jornada.
       const hasApprovedChurchMembership =
-        access.role === "membro" && access.pilot && !!access.igreja_id;
+        (access.role === "membro" && access.pilot && !!access.igreja_id)
+        || usingPastorJourney;
       if (!hasApprovedChurchMembership) {
         router.replace("/igreja");
         return;

@@ -2,6 +2,7 @@
 import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
+import {isPastorJourneyMode} from "../../utils/pastor-journey-mode";
 
 export default function Entrada(){
  const router=useRouter();const [error,setError]=useState("");
@@ -18,7 +19,12 @@ export default function Entrada(){
    const person=role.data;const access=policy.data;
    if(access.status==="maintenance"){router.replace("/pilot-status");return;}
    if(person.is_admin && access.allowed){router.replace("/admin");return;}
-   if(person.role==="pastor"&&person.pilot&&access.allowed){router.replace("/pastor");return;}
+   const personalPastorJourney=person.role==="pastor"&&person.pilot&&!!person.igreja_id&&access.allowed&&isPastorJourneyMode(user.id);
+   if(person.role==="pastor"&&person.pilot&&access.allowed&&!personalPastorJourney){router.replace("/pastor");return;}
+   if(personalPastorJourney){
+    if(!["male","female"].includes(user.user_metadata?.profile)){router.replace("/start?profile=1");return;}
+    router.replace("/");return;
+   }
    if(person.role==="membro"&&person.igreja_id&&person.pilot&&access.allowed){
     if(!["male","female"].includes(user.user_metadata?.profile)){router.replace("/start?profile=1");return;}
     router.replace("/");return;
