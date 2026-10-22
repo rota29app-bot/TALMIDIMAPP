@@ -45,7 +45,7 @@ export default function ScoreTab({
     );
     setSaving(false);
     if (saveError) {
-      setError("Não foi possível salvar a avaliação: " + saveError.message);
+      setError("Não foi possível salvar a avaliação. Confira a conexão e tente novamente. Nenhuma resposta foi descartada.");
       return;
     }
     setScore(value);
