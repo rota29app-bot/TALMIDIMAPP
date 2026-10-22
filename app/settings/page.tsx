@@ -138,6 +138,12 @@ export default function SettingsPage() {
             </div>
             <p className="text-xs text-text-muted mt-3">Confira se esta é a conta Google utilizada para receber o convite. Outra conta pode ter um cadastro diferente.</p>
           </section>
+          <section className="bg-bg-card border border-accent/20 rounded-2xl p-5 space-y-2">
+            <h2 className="font-bold">Instalar o ROTA29 no celular</h2>
+            <p className="text-sm text-text-muted"><strong>iPhone:</strong> abra esta página no Safari, toque em Compartilhar, escolha “Adicionar à Tela de Início”, ative “Abrir como App” (se disponível) e confirme.</p>
+            <p className="text-sm text-text-muted"><strong>Android:</strong> no Chrome, abra o menu e escolha “Instalar app” ou “Adicionar à tela inicial”.</p>
+            <p className="text-xs text-text-muted">A jornada precisa de conexão com a internet para registrar o progresso.</p>
+          </section>
           {/* Perfil: estado, cidade, idade */}
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
             <div className="flex items-start gap-4 mb-4">
