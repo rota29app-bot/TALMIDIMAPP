@@ -174,7 +174,7 @@ export default function HojePage() {
         {journeyDone ? (
           <div className="bg-white border border-[#f0e4cd] rounded-2xl p-6 text-center shadow-sm">
             <p className="text-[15px] text-[#3b5238] font-medium">
-              Você concluiu os 21 dias de Intimidade do piloto. O acompanhamento de experiência e resultados segue até 13 de novembro.
+              Você concluiu os 21 dias de Intimidade do piloto. O acompanhamento de experiência e resultados permanece disponível durante o período previsto do piloto.
             </p>
           </div>
         ) : stage && dayData ? (
