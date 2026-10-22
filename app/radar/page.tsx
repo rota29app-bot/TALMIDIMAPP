@@ -33,13 +33,25 @@ export default function RadarPage() {
       setMounted(true);
       setUserId(session.user.id);
       
-      // Initialize scores state ONLY if empty
+      // Rascunho temporário por conta e aba: evita perda das respostas se
+      // o navegador recarregar a tela. Não é compartilhado com outras contas.
       setScores(prev => {
         if (Object.keys(prev).length > 0) return prev;
         const initialScores: Record<string, number[]> = {};
-        radarAreas.forEach(area => {
-          initialScores[area.id] = new Array(5).fill(-1);
-        });
+        radarAreas.forEach(area => { initialScores[area.id] = new Array(5).fill(-1); });
+        try {
+          const saved = sessionStorage.getItem("rota29-radar-draft:" + session.user.id);
+          if (saved) {
+            const parsed = JSON.parse(saved) as Record<string, unknown>;
+            radarAreas.forEach(area => {
+              const answers = parsed?.[area.id];
+              if (Array.isArray(answers) && answers.length === 5 &&
+                answers.every(n => Number.isInteger(n) && n >= -1 && n <= 3)) {
+                initialScores[area.id] = answers as number[];
+              }
+            });
+          }
+        } catch { /* Armazenamento indisponível: o Radar continua utilizável. */ }
         return initialScores;
       });
     };
@@ -51,10 +63,15 @@ export default function RadarPage() {
   const isAreaComplete = currentScores.length > 0 && currentScores.every(score => score !== -1);
 
   const handleScore = (questionIndex: number, score: number) => {
-    setScores(prev => ({
-      ...prev,
-      [currentArea.id]: prev[currentArea.id].map((s, i) => i === questionIndex ? score : s)
-    }));
+    setScores(prev => {
+      const next = {
+        ...prev,
+        [currentArea.id]: prev[currentArea.id].map((s, i) => i === questionIndex ? score : s)
+      };
+      try { if (userId) sessionStorage.setItem("rota29-radar-draft:" + userId, JSON.stringify(next)); }
+      catch { /* A participação não depende de armazenamento local. */ }
+      return next;
+    });
   };
 
   const handleBack = () => {
@@ -98,6 +115,7 @@ export default function RadarPage() {
         return;
       }
 
+      try { sessionStorage.removeItem("rota29-radar-draft:" + userId); } catch {}
       router.push("/radar/result");
     }
   };
