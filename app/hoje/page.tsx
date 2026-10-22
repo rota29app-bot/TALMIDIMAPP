@@ -14,6 +14,7 @@ export default function HojePage() {
 
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [userName, setUserName] = useState("Peregrino");
   const [activeStageId, setActiveStageId] = useState<string | null>(null);
   const [activeDay, setActiveDay] = useState(1);
@@ -41,23 +42,33 @@ export default function HojePage() {
 
       // Mesmas guardas do Mapa: sem Radar ou sem PDD, não é "Hoje" ainda —
       // é Fase 0 que falta completar.
-      const { data: userRadars } = await supabase
+      const { data: userRadars, error: userRadarsError } = await supabase
         .from("user_radars")
         .select("id")
         .eq("user_id", session.user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
+      if (userRadarsError) {
+        setLoadError("Não foi possível verificar seu progresso. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
       if (!userRadars) {
         router.push("/radar");
         return;
       }
 
-      const { data: userPdds } = await supabase
+      const { data: userPdds, error: userPddsError } = await supabase
         .from("user_pdds")
         .select("id")
         .eq("user_id", session.user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
+      if (userPddsError) {
+        setLoadError("Não foi possível verificar seu progresso. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
       if (!userPdds) {
         router.push("/pdd");
         return;
@@ -133,6 +144,8 @@ export default function HojePage() {
     }
     setSaving(false);
   };
+
+  if (loadError) return <main className="min-h-screen bg-[#F8F5F0] text-[#0F3D33] p-8 flex flex-col justify-center gap-4"><p role="alert">{loadError}</p><button className="rounded-xl bg-[#0F3D33] text-white p-4" onClick={() => window.location.reload()}>Tentar novamente</button></main>;
 
   if (!mounted || loading) {
     return (
