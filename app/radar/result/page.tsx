@@ -24,13 +24,18 @@ export default function RadarResultPage() {
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const fetchRadar = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.push("/start");
         return;
       }
+      const { data: permit, error: permitError } = await supabase.rpc("rota29_pilot_access");
+      if (permitError || permit?.allowed !== true) {
+        router.replace("/igreja");
+        return;
+      }
+      setMounted(true);
       
       const { data } = await supabase
         .from("user_radars")
