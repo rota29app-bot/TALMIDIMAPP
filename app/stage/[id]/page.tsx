@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { getStage, badgeNames } from "../../data";
+import { getStage, badgeNames, stageOrder } from "../../data";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, useParams, useRouter, useSearchParams } from "next/navigation";
@@ -9,6 +9,8 @@ import CompleteButton from "./CompleteButton";
 import { createClient } from "../../../utils/supabase/client";
 import PracticesTab, { GLOBAL_STAGE_KEY, todayEpochDay } from "./PracticesTab";
 import ScoreTab from "./ScoreTab";
+import DailyPrayerGate, {useDailyPrayerGate} from "../../components/DailyPrayerGate";
+import DailyMemorialForm from "../../components/DailyMemorialForm";
 
 // Ícones SVG Simples
 const HeartIcon = ({ className }: { className?: string }) => (
@@ -74,6 +76,15 @@ function StagePageContent() {
   const [memoriaSemana, setMemoriaSemana] = useState("");
   const [memGratidao, setMemGratidao] = useState(["", "", ""]);
   const [memoriaSaved, setMemoriaSaved] = useState(false);
+  const [dayMemorialSaved,setDayMemorialSaved] = useState(false);
+  const [adminPreview,setAdminPreview] = useState(false);
+  useEffect(()=>{
+    let live=true;
+    void createClient().rpc("pilot_my_church").then(({data})=>{
+      if(live)setAdminPreview(data?.is_admin===true);
+    });
+    return()=>{live=false;};
+  },[]);
 
   // Memorial da Consolidação (ET-009 v2, Dia 6): 3 campos próprios do
   // Diário da Consolidação — aprendizado, prática e oração de forças.
@@ -138,14 +149,8 @@ function StagePageContent() {
         !!stageRes.data?.specific_practice_done
     );
 
-    const { data: scoreData } = await supabase
-      .from("user_station_scores")
-      .select("score")
-      .eq("user_id", session.user.id)
-      .eq("stage_id", id)
-      .single();
-
-    setScoreDone(!!scoreData && scoreData.score !== null && scoreData.score !== undefined);
+    const {data: scoreData,error: scoreError}=await supabase.rpc("rota29_my_daily_assessment",{p_stage:id,p_day:dayIndex});
+    setScoreDone(!scoreError && typeof scoreData?.score==="number");
   };
 
   useEffect(() => {
@@ -161,21 +166,40 @@ function StagePageContent() {
     setContentRead(newValue);
   };
 
-  const canComplete = contentRead && practicesDone && scoreDone;
+  const canComplete = contentRead && practicesDone && scoreDone && (dayMemorialSaved || adminPreview);
+  useEffect(()=>{
+    let mounted=true;
+    setDayMemorialSaved(false);
+    void createClient().rpc("rota29_my_day_gate",{p_stage:id}).then(({data,error})=>{
+      if(mounted&&!error&&data?.day_index===dayIndex)setDayMemorialSaved(data.memorial_saved===true);
+    });
+    return()=>{mounted=false;};
+  },[id,dayIndex]);
+  const saveMemorial=async(vivido:string,falou:string):Promise<boolean>=>{
+    if(adminPreview){
+      const {data:{user}}=await supabase.auth.getUser();
+      if(!user)return false;
+      const {error}=await supabase.from("user_diary").insert({
+        user_id:user.id,vivido_hoje:vivido||"—",deus_falou:falou||"—"
+      });
+      if(error){alert("Não foi possível guardar o Memorial. Seu texto permanece nesta tela; confira a conexão e tente novamente.");return false;}
+      setDayMemorialSaved(true);
+      return true;
+    }
+    const {error}=await supabase.rpc("rota29_save_daily_memorial",{
+      p_stage:id,p_day:dayIndex,p_vivido:vivido,p_deus_falou:falou
+    });
+    if(error){alert("Não foi possível guardar o Memorial. Suas respostas permanecem nesta tela para tentar novamente.");return false;}
+    setDayMemorialSaved(true);
+    return true;
+  };
 
   const handleSaveDiario = async () => {
     if (!diarioVivido.trim() && !diarioDeusFalou.trim()) return;
     setDiarioSaving(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      await supabase.from("user_diary").insert({
-        user_id: session.user.id,
-        vivido_hoje: diarioVivido || "—",
-        deus_falou: diarioDeusFalou || "—",
-      });
-    }
+    const ok=await saveMemorial(diarioVivido,diarioDeusFalou);
     setDiarioSaving(false);
-    setDiarioSaved(true);
+    if(ok)setDiarioSaved(true);
   };
 
   // Gratidão + Minha Memória da Semana (ET-010 v2, Dia 7) — salva
@@ -183,7 +207,7 @@ function StagePageContent() {
   // (regra do documento: "Salvar automaticamente"). Mesma tabela user_diary
   // da Memorial da Estação, sem tabela nova no banco.
   const handleSaveGratidaoMemoria = async () => {
-    if (memoriaSaved) return;
+    if (memoriaSaved || dayMemorialSaved) return true;
     const gratidaoTexto = memGratidao
       .map((g, i) => (g.trim() ? `${i + 1}) ${g.trim()}` : null))
       .filter(Boolean)
@@ -191,19 +215,13 @@ function StagePageContent() {
     const vivido = memoriaSemana.trim() ? `Minha Memória da Semana: ${memoriaSemana.trim()}` : "";
     const deusFalou = gratidaoTexto ? `Gratidão:\n${gratidaoTexto}` : "";
 
-    if (!vivido.trim() && !deusFalou.trim()) return;
+    if (!vivido.trim() && !deusFalou.trim()) {alert("Registre seu Memorial antes de continuar.");return false;}
 
     setDiarioSaving(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      await supabase.from("user_diary").insert({
-        user_id: session.user.id,
-        vivido_hoje: vivido || "—",
-        deus_falou: deusFalou || "—",
-      });
-    }
+    const ok=await saveMemorial(vivido,deusFalou);
     setDiarioSaving(false);
-    setMemoriaSaved(true);
+    if(ok)setMemoriaSaved(true);
+    return ok;
   };
 
   // Diário/Memorial da Consolidação (ET-009 v2, Dia 6) — aprendizado,
@@ -217,19 +235,12 @@ function StagePageContent() {
       .join("\n\n");
     const deusFalou = consOracao.trim() ? `Oração pedindo forças: ${consOracao.trim()}` : "";
 
-    if (!vivido.trim() && !deusFalou.trim()) return;
+    if (!vivido.trim() && !deusFalou.trim()) {alert("Registre seu Memorial antes de continuar.");return false;}
 
     setDiarioSaving(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      await supabase.from("user_diary").insert({
-        user_id: session.user.id,
-        vivido_hoje: vivido || "—",
-        deus_falou: deusFalou || "—",
-      });
-    }
+    const ok=await saveMemorial(vivido,deusFalou);
     setDiarioSaving(false);
-    setDiarioSaved(true);
+    if(ok)setDiarioSaved(true);
   };
 
   useEffect(() => {
@@ -259,29 +270,32 @@ function StagePageContent() {
         if (savedProfile) setProfile(savedProfile);
       }
 
-      if (dbDay) {
-        setDayIndex(dbDay);
-      } else {
-        const savedDay = localStorage.getItem(`talmidim-day-${id}`);
-        if (savedDay) {
-          setDayIndex(Number(savedDay));
-        } else {
-          localStorage.setItem(`talmidim-day-${id}`, "1");
-          setDayIndex(1);
-        }
-      }
+      // Progresso real sempre vem do banco, não do localStorage do aparelho.
+      if(session){
+        setDayIndex(dbDay||1);
+        localStorage.setItem(`talmidim-day-${id}`,String(dbDay||1));
+      }else setDayIndex(1);
       setIsLoading(false);
     };
     fetchProgress();
   }, [id, stage]);
 
-  if (!stage) {
+  if (!stage || !stageOrder.includes(id)) {
     notFound();
     return null;
   }
 
   if (isLoading) {
     return <div className="min-h-screen bg-[#1a1a1a]" />;
+  }
+
+  if (id !== "house" && dayIndex > 7 && !isReviewing) {
+    return <main className="min-h-screen bg-bg-main text-text-main flex flex-col items-center justify-center p-6 gap-5 text-center">
+      <h1 className="text-2xl font-bold">{stage.title} — etapa do piloto concluída</h1>
+      <p className="max-w-md">Você concluiu os sete dias desta estação previstos no piloto. Continue Intimidade com Deus até o dia 21 para conquistar a primeira insígnia.</p>
+      <button onClick={() => router.push("/stage/house")} className="bg-accent text-bg-main px-6 py-3 rounded-xl font-bold">Continuar Intimidade</button>
+      <button onClick={() => router.push("/")} className="underline">Voltar ao mapa</button>
+    </main>;
   }
 
   const currentDayData = stage.days[dayIndex - 1];
@@ -447,7 +461,7 @@ function StagePageContent() {
           >
              <div className="relative w-[95px] h-[35px] mb-8 mt-0">
                {/* Reduzindo o scale para 1.7 e retornando o pt para 10 para alinhar com o coração sem esmagar o número */}
-               <Image src="/logo.png" alt="Talmidim Logo" fill className="object-contain dark:invert opacity-90 scale-[1.7] origin-center" />
+               <Image src="/brand/rota29-symbol.svg" alt="Símbolo ROTA29" fill className="object-contain opacity-95" />
              </div>
              
              <h1 className="text-[54px] font-black text-text-main leading-[0.8] tracking-tighter">
@@ -565,7 +579,7 @@ function StagePageContent() {
                       // Ordem do ET-011: Vídeo, Artigo, Reflexão, Prática,
                       // Diário, Oração/Conclusão. Práticas sempre entra (é
                       // hábito diário); Pontuação só entra se ainda não foi
-                      // feita nesta estação (é avaliação semanal, não diária).
+                      // feita neste dia (é avaliação diária).
                       type StepKey = "video" | "artigo" | "revisao" | "reflexao" | "desafio" | "timeline" | "gratidao" | "memoria" | "celebracao" | "praticas" | "pontuacao" | "diario" | "conclusao";
                       const steps: StepKey[] = [];
                       if (currentDayData.videoRoteiro) steps.push("video");
@@ -604,15 +618,13 @@ function StagePageContent() {
                       const isArticleStep = step === "artigo";
                       const isArticleMidway = isArticleStep && artigoSlide < articleSlides.length - 1;
 
-                      const goNext = () => {
-                        if (isArticleMidway) setArtigoSlide((s) => s + 1);
-                        else {
-                          // ET-010 v2: Gratidão e Minha Memória da Semana
-                          // salvam automaticamente, sem botão — ao avançar
-                          // pra tela seguinte (Celebração), já guarda tudo.
-                          if (step === "memoria") handleSaveGratidaoMemoria();
-                          setContentStep((s) => Math.min(s + 1, steps.length - 1));
+                      const goNext = async () => {
+                        if(isArticleMidway){setArtigoSlide((v)=>v+1);return;}
+                        if(step==="memoria"){
+                          const ok=await handleSaveGratidaoMemoria();
+                          if(!ok)return;
                         }
+                        setContentStep((v)=>Math.min(v+1,steps.length-1));
                       };
                       const goBack = () => {
                         if (isArticleStep && artigoSlide > 0) setArtigoSlide((s) => s - 1);
@@ -831,7 +843,7 @@ function StagePageContent() {
 
                           {step === "pontuacao" && (
                             <div className="mb-6">
-                              <ScoreTab id={id} onChange={checkCompletionStatus} />
+                              <ScoreTab id={id} dayIndex={dayIndex} onChange={checkCompletionStatus} />
                             </div>
                           )}
 
@@ -840,7 +852,7 @@ function StagePageContent() {
                               <span className="block text-[11px] uppercase tracking-wide text-accent font-bold mb-3">
                                 Memorial da Consolidação
                               </span>
-                              {diarioSaved ? (
+                              {dayMemorialSaved ? (
                                 <p className="text-[14px] text-text-main/70">Registrado no seu Memorial da Estação. Você pode rever tudo na aba Memorial.</p>
                               ) : (
                                 <>
@@ -882,7 +894,7 @@ function StagePageContent() {
                               <span className="block text-[11px] uppercase tracking-wide text-accent font-bold mb-3">
                                 Memorial da Estação
                               </span>
-                              {diarioSaved ? (
+                              {dayMemorialSaved ? (
                                 <p className="text-[14px] text-text-main/70">Registrado no seu Memorial da Estação. Você pode rever tudo na aba Memorial.</p>
                               ) : (
                                 <>
@@ -1059,18 +1071,21 @@ function StagePageContent() {
 
                     {/* PRÁTICAS — dias de prática contínua (8-21) não têm
                         carrossel, então Práticas (e Pontuação, só na
-                        primeira vez da estação) entram direto na sequência. */}
+                        primeira vez no dia) entram direto na sequência. */}
                     <div className="mb-6">
                       <PracticesTab id={id} dayIndex={dayIndex} onChange={checkCompletionStatus} />
                     </div>
                     {!scoreDone && (
                       <div className="mb-6">
-                        <ScoreTab id={id} onChange={checkCompletionStatus} />
+                        <ScoreTab id={id} dayIndex={dayIndex} onChange={checkCompletionStatus} />
                       </div>
                     )}
                   </>
                 )}
               </div>
+
+            {!adminPreview && <DailyMemorialForm stage={id} day={dayIndex} saved={dayMemorialSaved}
+              onSaved={()=>{setDayMemorialSaved(true);setDiarioSaved(true);setMemoriaSaved(true);}}/>}
 
             {/* BOTÃO DE CONCLUIR — sempre visível ao final do fluxo único
                 (antes ficava escondido dependendo da aba; agora não tem
@@ -1084,7 +1099,7 @@ function StagePageContent() {
                 {!contentRead && (!practicesDone || !scoreDone) && ", "}
                 {!practicesDone && "Práticas"}
                 {!practicesDone && !scoreDone && " e "}
-                {!scoreDone && "Pontuação"} para avançar de dia.
+                {!scoreDone && "Pontuação"}{!dayMemorialSaved && " e Memorial"} para avançar de dia.
               </p>
             )}
 
@@ -1113,7 +1128,7 @@ function StagePageContent() {
             </div>
             <div className="w-full h-2 rounded-full bg-text-main/10 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#b58b54] to-[#eaddc5] transition-all duration-700"
+                className="h-full rounded-full bg-gradient-to-r from-[#C79A5B] to-[#E9DFCE] transition-all duration-700"
                 style={{ width: `${(currentDayData.day / 21) * 100}%` }}
               />
             </div>
@@ -1126,10 +1141,27 @@ function StagePageContent() {
   );
 }
 
-export default function StagePage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-bg-main" />}>
-      <StagePageContent />
-    </Suspense>
+function StageDayBoundary(){
+  const params=useParams();
+  const stage=String(params?.id||"");
+  const query=useSearchParams();
+  const reviewDay=Number(query?.get("rever")||0);
+  const reviewing=Number.isInteger(reviewDay)&&reviewDay>=1;
+  const {gate,loading,error,refresh}=useDailyPrayerGate(stage);
+  if(loading||!gate)return <main className="min-h-screen bg-[#E9DFCE] text-[#0F3D33] grid place-items-center">Conferindo horário da jornada…</main>;
+  // Rever nunca dá acesso ao dia atual antes do horário programado.
+  // Somente dias estritamente anteriores ao dia confirmado pelo banco.
+  const reviewAllowed=reviewing && (
+    gate.status==="admin_preview" ||
+    (typeof gate.day_index==="number" && reviewDay<gate.day_index)
   );
+  if(!reviewAllowed && !["open","admin_preview","stage_completed"].includes(gate.status))
+    return <DailyPrayerGate gate={gate} error={error} refresh={refresh}/>;
+  if(reviewing && !reviewAllowed)
+    return <DailyPrayerGate gate={{status:"waiting",open:false,day_index:gate.day_index,ready_at:gate.ready_at,time_zone:gate.time_zone}}
+     error="Este dia ainda não foi concluído." refresh={refresh}/>;
+  return <StagePageContent/>;
+}
+export default function StagePage(){
+ return <Suspense fallback={<div className="min-h-screen bg-bg-main" />}><StageDayBoundary/></Suspense>;
 }

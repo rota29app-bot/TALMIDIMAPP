@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { getStage, stageOrder, badgeNames } from "./data";
 import { createClient } from "../utils/supabase/client";
 import BottomNav from "./components/BottomNav";
+import { isAdminTestMode } from "../utils/admin-test-mode";
+import { isPastorJourneyMode } from "../utils/pastor-journey-mode";
 
 // Numeração exibida em cada estação (estação 1 = base, estação 7 = topo)
 const stageNumbers: Record<string, string> = {
   house: "01",
   street: "02",
-  clinic: "03",
-  office: "04",
+  clinic: "04",
+  office: "03",
   construction: "05",
   rooftop: "06",
   city: "07",
@@ -57,10 +59,12 @@ export default function Home() {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [gender, setGender] = useState<"male" | "female">("male");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [userName, setUserName] = useState("Peregrino");
   const [justAdvanced, setJustAdvanced] = useState(false);
   const [currentDay, setCurrentDay] = useState(1);
+  const [hasFirstBadge, setHasFirstBadge] = useState(false);
   // dia (1-21) de CADA estação, não só da atual — necessário porque, no
   // modelo de estações sobrepostas, mais de uma pode estar em prática ao
   // mesmo tempo (dia 8-20) enquanto outra já está no conteúdo (dia 1-7).
@@ -76,59 +80,100 @@ export default function Home() {
         return;
       }
 
-      const profile = session.user?.user_metadata?.profile;
-      if (!profile) {
-        router.push("/start");
-        return;
-      }
-      setGender(profile === "female" ? "female" : "male");
+      // Não obrigar superadministradores ou pastores a atravessar Radar/PDD.
+      const { data: membership, error: membershipError } = await supabase.rpc("pilot_my_church");
+       if (membershipError) {
+         // Falha na verificação do vínculo não autoriza navegar como se não houvesse problema.
+         console.error("ROTA29: falha ao verificar vínculo institucional", membershipError.message);
+         router.replace("/igreja");
+         return;
+       }
+       const testingAsAdmin = membership?.is_admin && isAdminTestMode(session.user.id);
+       const personalPastorJourney = membership?.role === "pastor"
+         && membership?.pilot === true
+         && !!membership?.igreja_id
+         && isPastorJourneyMode(session.user.id);
+       if (membership?.is_admin && !testingAsAdmin) {
+         // Proprietário/coordenação acessa a administração sem precisar completar Radar ou PDD.
+         router.replace("/admin");
+         return;
+       }
+       if (membership?.role === "pastor" && !testingAsAdmin && !personalPastorJourney) {
+         router.replace("/pastor");
+         return;
+       }
+       if (!testingAsAdmin && !personalPastorJourney && !membership?.nome && !membership?.individual) {
+         router.replace("/igreja");
+         return;
+       }
+       const profile = session.user?.user_metadata?.profile;
+       if (!profile) {
+         router.replace("/start?profile=1");
+         return;
+       }
+       setGender(profile === "female" ? "female" : "male");
 
       const fullName = session.user?.user_metadata?.full_name || session.user?.user_metadata?.name;
       if (fullName) setUserName(String(fullName).split(" ")[0]);
 
       // Verificar se preencheu o Radar Discipular
-      const { data: userRadars } = await supabase
+      const { data: userRadars, error: userRadarsError } = await supabase
         .from("user_radars")
         .select("id")
         .eq("user_id", session.user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
 
+      if (userRadarsError) {
+        setLoadError("Não foi possível consultar seu progresso. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
       if (!userRadars) {
         router.push("/radar");
         return;
       }
 
       // Verificar se assinou o PDD
-      const { data: userPdds } = await supabase
+      const { data: userPdds, error: userPddsError } = await supabase
         .from("user_pdds")
         .select("id")
         .eq("user_id", session.user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
 
+      if (userPddsError) {
+        setLoadError("Não foi possível consultar seu progresso. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
       if (!userPdds) {
         router.push("/pdd");
         return;
       }
 
       // Buscar progresso no banco
-      const { data } = await supabase
+      const { data, error: unlockError } = await supabase
         .from("user_stage_unlocks")
         .select("current_stage_index")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
+      if (unlockError) {
+        setLoadError("Falha ao carregar suas estações. Seu progresso foi preservado; tente novamente.");
+        setLoading(false);
+        return;
+      }
 
       let resolvedIndex = 0;
       if (data) {
-        resolvedIndex = data.current_stage_index;
+        resolvedIndex = Math.min(Math.max(0, data.current_stage_index), stageOrder.length - 1);
         setCurrentStageIndex(resolvedIndex);
         localStorage.setItem("talmidim-progress", resolvedIndex.toString());
       } else {
         // Se não existir, tenta ler o local
         const saved = localStorage.getItem("talmidim-progress");
         if (saved !== null) {
-          resolvedIndex = Number(saved);
+          resolvedIndex = Math.min(Math.max(0, Number(saved) || 0), stageOrder.length - 1);
           setCurrentStageIndex(resolvedIndex);
         }
       }
@@ -137,17 +182,25 @@ export default function Home() {
       // desbloqueada — necessário pra saber quais estão em prática
       // contínua (dia 8-20) e quais já concluíram (dia 21), já que agora
       // várias estações podem estar ativas ao mesmo tempo.
-      const { data: allDaysData } = await supabase
+      const { data: allDaysData, error: allDaysError } = await supabase
         .from("user_daily_progress")
         .select("stage_id, day_index")
         .eq("user_id", session.user.id)
         .in("stage_id", stageOrder);
+      if (allDaysError) {
+        setLoadError("Falha ao consultar os dias concluídos. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
 
       const dayMap: Record<string, number> = {};
       (allDaysData || []).forEach((row) => {
         dayMap[row.stage_id] = row.day_index;
       });
       setDayByStage(dayMap);
+      const { data: badge } = await supabase.from("user_badges")
+        .select("id").eq("user_id", session.user.id).eq("badge_id","house").maybeSingle();
+      setHasFirstBadge(!!badge);
 
       if (resolvedIndex < stageOrder.length) {
         const dayForCurrent = dayMap[stageOrder[resolvedIndex]];
@@ -182,15 +235,17 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [loading, currentStageIndex]);
 
+  if (loadError) return <main className="min-h-screen bg-[#0F3D33] text-white p-8 flex flex-col justify-center gap-4"><p role="alert">{loadError}</p><button className="rounded-xl bg-[#C79A5B] text-[#12382F] font-bold p-4" onClick={() => window.location.reload()}>Tentar novamente</button></main>;
+
   if (loading) {
     return (
       <div
         className="min-h-screen flex justify-center items-center"
-        style={{ background: "linear-gradient(180deg, #243525 0%, #16210f 100%)" }}
+        style={{ background: "linear-gradient(180deg, #0F3D33 0%, #16210f 100%)" }}
       >
         <div className="w-full max-w-[420px] min-h-screen flex flex-col gap-4 justify-center items-center">
-          <div className="w-9 h-9 border-4 border-[#eaddc5]/25 border-t-[#c69b5c] rounded-full animate-spin"></div>
-          <p className="text-[#eaddc5]/70 text-sm tracking-wide">Preparando sua jornada...</p>
+          <div className="w-9 h-9 border-4 border-[#E9DFCE]/25 border-t-[#C79A5B] rounded-full animate-spin"></div>
+          <p className="text-[#E9DFCE]/70 text-sm tracking-wide">Preparando sua jornada...</p>
         </div>
       </div>
     );
@@ -220,26 +275,21 @@ export default function Home() {
 
   const totalStages = stageOrder.length;
   const currentStageId = stageOrder[currentStageIndex];
-  // Jornada só termina de verdade quando a ÚLTIMA estação chega no dia 21
-  // (conquista) — não mais quando currentStageIndex "passa do fim", porque
-  // agora ele avança no dia 7 (marco), não no dia 21.
-  const lastStageId = stageOrder[totalStages - 1];
-  const journeyComplete = (dayByStage[lastStageId] || 0) >= 21;
+  // A primeira insígnia é entregue após 21 dias de Intimidade.
+  const jornadaIntimidade = hasFirstBadge ? 21 : Math.min(20, Math.max(0, (dayByStage.house || 1) - 1));
+  const journeyComplete = hasFirstBadge;
   const fromTitle =
     currentStageIndex === 0 ? "Início" : getStage(stageOrder[currentStageIndex - 1])?.title || "Início";
-  const toTitle = journeyComplete ? "Jornada concluída" : getStage(currentStageId)?.title || "Próxima estação";
+  const toTitle = journeyComplete ? "Piloto concluído" : getStage(currentStageId)?.title || "Próxima estação";
   const ticketNumber = `EST ${String(Math.min(currentStageIndex + 1, totalStages)).padStart(2, "0")}`;
   const stageLabel = `${String(Math.min(currentStageIndex + 1, totalStages)).padStart(2, "0")}/${String(totalStages).padStart(2, "0")}`;
   const dayLabel = journeyComplete ? "21/21" : `${currentDay}/21`;
-  // Progresso geral soma os dias de TODAS as estações já iniciadas (não só
-  // a atual), porque com prática contínua várias avançam ao mesmo tempo.
-  const totalDaysDone = stageOrder.reduce((sum, id) => sum + Math.min(dayByStage[id] || 0, 21), 0);
-  const totalProgressPct = Math.round((totalDaysDone / (totalStages * 21)) * 100);
+  const totalProgressPct = Math.round(jornadaIntimidade / 21 * 100);
   const badgeReady = journeyComplete;
 
   return (
     <div className="min-h-screen flex justify-center bg-black text-white">
-      <div className="w-full max-w-[420px] bg-neutral-900">
+      <div className="w-full max-w-[420px] bg-[#0C2D26]"><div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-[#C79A5B]/30 bg-[#0F3D33]"><img src="/brand/rota29-logo-negative.svg" alt="ROTA29 — Discipulado no cotidiano" className="w-32 h-12 object-contain"/><span className="text-[#E9DFCE] text-[9px] tracking-[.14em] uppercase">Sua jornada continua</span></div>
         <div
           className="relative w-full overflow-hidden"
           style={{
@@ -258,11 +308,11 @@ export default function Home() {
           >
             <div
               className="flex items-center justify-between"
-              style={{ background: "#243525", padding: "12px 20px" }}
+              style={{ background: "#0F3D33", padding: "12px 20px" }}
             >
               <span
                 className="font-bold uppercase"
-                style={{ color: "#fdfaf6", fontSize: 12, letterSpacing: "0.05em" }}
+                style={{ color: "#F8F5F0", fontSize: 12, letterSpacing: "0.05em" }}
               >
                 Passagem da jornada
               </span>
@@ -271,7 +321,7 @@ export default function Home() {
                 style={{
                   fontFamily: "monospace",
                   fontSize: 10,
-                  color: "#fdfaf6",
+                  color: "#F8F5F0",
                   background: "#ffffff22",
                   padding: "4px 9px",
                 }}
@@ -289,7 +339,7 @@ export default function Home() {
                   >
                     Nome do viajante
                   </p>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {userName}
                   </p>
                 </div>
@@ -300,7 +350,7 @@ export default function Home() {
                   >
                     Perfil
                   </p>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     Jornada Discipular
                   </p>
                 </div>
@@ -314,7 +364,7 @@ export default function Home() {
                   >
                     De
                   </p>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {fromTitle}
                   </p>
                 </div>
@@ -325,7 +375,7 @@ export default function Home() {
                   >
                     Para
                   </p>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {toTitle}
                   </p>
                 </div>
@@ -368,7 +418,7 @@ export default function Home() {
                   <p className="uppercase tracking-widest" style={{ fontSize: 8, color: "#8b613199", margin: 0 }}>
                     Estação
                   </p>
-                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {stageLabel}
                   </p>
                 </div>
@@ -376,7 +426,7 @@ export default function Home() {
                   <p className="uppercase tracking-widest" style={{ fontSize: 8, color: "#8b613199", margin: 0 }}>
                     Dia
                   </p>
-                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {dayLabel}
                   </p>
                 </div>
@@ -384,7 +434,7 @@ export default function Home() {
                   <p className="uppercase tracking-widest" style={{ fontSize: 8, color: "#8b613199", margin: 0 }}>
                     Progresso
                   </p>
-                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#243525", margin: "3px 0 0" }}>
+                  <p style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#0F3D33", margin: "3px 0 0" }}>
                     {totalProgressPct}%
                   </p>
                 </div>
@@ -407,9 +457,7 @@ export default function Home() {
               className="text-center uppercase tracking-widest"
               style={{ fontFamily: "monospace", fontSize: 9, color: "#8b6131cc", margin: "10px 0 0" }}
             >
-              {21 - currentDay <= 0
-                ? `Insígnia "${badgeNames[currentStageId] || "desta estação"}" liberada!`
-                : `Faltam ${21 - currentDay} dia${21 - currentDay === 1 ? "" : "s"} para a insígnia "${badgeNames[currentStageId] || "desta estação"}"`}
+              {`Primeira insígnia "${badgeNames.house}" · ${jornadaIntimidade}/21 dias de Intimidade`}
             </p>
           )}
 
@@ -423,8 +471,8 @@ export default function Home() {
                 fontFamily: "monospace",
                 fontSize: 9,
                 letterSpacing: "0.06em",
-                color: "#fdfaf6",
-                background: "linear-gradient(90deg, #b58b54, #8b6131)",
+                color: "#F8F5F0",
+                background: "linear-gradient(90deg, #C79A5B, #8b6131)",
                 padding: "5px 10px",
                 borderRadius: 999,
                 animation: "stampInOut 2.4s ease forwards",
@@ -450,7 +498,7 @@ export default function Home() {
           >
             <defs>
               <linearGradient id="pathGold" x1="0%" y1="100%" x2="0%" y2="0%">
-                <stop offset="0%" stopColor="#b58b54" />
+                <stop offset="0%" stopColor="#C79A5B" />
                 <stop offset="100%" stopColor="#fdf0d5" />
               </linearGradient>
               <filter id="pathGlow" x="-100%" y="-100%" width="300%" height="300%">
@@ -495,7 +543,7 @@ export default function Home() {
             // conteúdo liberado, prática contínua rolando em paralelo com a
             // estação mais nova. Estação com dia >= 21: insígnia já conquistada.
             const stageDay = dayByStage[id] || 0;
-            const isCompleted = !isLocked && stageDay >= 21;
+            const isCompleted = !isLocked && (id === "house" ? hasFirstBadge : stageDay >= 8);
             const isInPractice = !isLocked && !isCompleted && index !== currentStageIndex && stageDay >= 8;
             const imgSrc = `/mapa-jornada/${gender}-${id}-smoke.png`;
             const title = getStage(id)?.title || "";
@@ -550,7 +598,7 @@ export default function Home() {
                         width: 30,
                         height: 30,
                         background: "rgba(36,53,37,0.6)",
-                        color: "#eaddc5",
+                        color: "#E9DFCE",
                       }}
                     >
                       🔒
@@ -565,8 +613,8 @@ export default function Home() {
                         left: bleedRight ? 8 : undefined,
                         width: 26,
                         height: 26,
-                        background: "linear-gradient(135deg, #fdfaf6, #c69b5c)",
-                        color: "#243525",
+                        background: "linear-gradient(135deg, #F8F5F0, #C79A5B)",
+                        color: "#0F3D33",
                         boxShadow: "0 4px 10px rgba(0,0,0,0.35)",
                       }}
                     >
@@ -581,7 +629,7 @@ export default function Home() {
                         right: bleedRight ? undefined : 8,
                         left: bleedRight ? 8 : undefined,
                         fontSize: 8,
-                        color: "#fdfaf6",
+                        color: "#F8F5F0",
                         background: "rgba(36,53,37,0.75)",
                         padding: "3px 7px",
                         borderRadius: 999,
@@ -611,7 +659,7 @@ export default function Home() {
                 >
                   <span
                     className="leading-none tracking-tight"
-                    style={{ fontSize: 20, color: "#243525", fontWeight: 800 }}
+                    style={{ fontSize: 20, color: "#0F3D33", fontWeight: 800 }}
                   >
                     {stageNumbers[id]}
                   </span>

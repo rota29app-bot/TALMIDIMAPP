@@ -72,7 +72,11 @@ export default function PracticesTab({ id, dayIndex, onChange }: { id: string; d
     setPractices(prev => ({ ...prev, [field]: newValue }));
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      setPractices(prev => ({ ...prev, [field]: !newValue }));
+      alert("Sua sessão expirou. Entre novamente para registrar a prática.");
+      return;
+    }
 
     setSaving(true);
 
@@ -92,7 +96,7 @@ export default function PracticesTab({ id, dayIndex, onChange }: { id: string; d
     if (error) {
       // Revert if error
       setPractices(prev => ({ ...prev, [field]: !newValue }));
-      alert("Erro ao salvar prática.");
+      alert("Não foi possível salvar esta prática. A marcação foi desfeita; verifique a conexão e tente novamente.");
     } else {
       // Avisa o componente pai (agora que Práticas não é mais aba separada,
       // ninguém troca de aba pra disparar a reavaliação do "Concluir Dia" —

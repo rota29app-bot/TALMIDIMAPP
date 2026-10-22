@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
 import { createClient } from "../../../utils/supabase/server";
 
-// Recebe a volta do login com Google, troca o "code" por uma sessão
-// válida (gravando o cookie no servidor) e só então redireciona.
-// Isso elimina a corrida entre o cookie ser gravado e a página seguinte
-// já checar a sessão, que era o que causava o loop de login.
+// A callback grava os cookies e identifica explicitamente o retorno do Google.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/start";
-
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
-    }
+  if (!code) return NextResponse.redirect(new URL("/start?auth_error=missing_code", origin));
+  const db = await createClient();
+  const { error } = await db.auth.exchangeCodeForSession(code);
+  if (error) {
+    console.error("ROTA29 Google OAuth:", error.message);
+    return NextResponse.redirect(new URL("/start?auth_error=exchange_failed", origin));
   }
-
-  return NextResponse.redirect(`${origin}/start?auth_error=1`);
+  // Preserva o convite específico durante o retorno do Google.
+  const invite = searchParams.get("convite")?.trim().toUpperCase();
+  const target = new URL("/start", origin);
+  target.searchParams.set("after_auth", "1");
+  if (invite && /^[A-F0-9]{16}$/.test(invite)) target.searchParams.set("convite", invite);
+  return NextResponse.redirect(target);
 }
