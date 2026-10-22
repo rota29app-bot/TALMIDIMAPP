@@ -26,13 +26,18 @@ export default function PDDPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.push("/start");
         return;
       }
+      const { data: permit, error: permitError } = await supabase.rpc("rota29_pilot_access");
+      if (permitError || permit?.allowed !== true) {
+        router.replace("/igreja");
+        return;
+      }
+      setMounted(true);
       setUserId(session.user.id);
       
       // Verifica se já preencheu PDD
