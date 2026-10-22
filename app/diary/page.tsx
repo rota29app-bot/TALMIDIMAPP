@@ -19,6 +19,8 @@ export default function DiaryPage() {
   const [mounted, setMounted] = useState(false);
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [saveError, setSaveError] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   
   // State para o modal de nova entrada
@@ -42,14 +44,17 @@ export default function DiaryPage() {
     
     setUserId(session.user.id);
 
-    const { data } = await supabase
+    const { data, error: fetchError } = await supabase
       .from("user_diary")
       .select("*")
       .eq("user_id", session.user.id)
       .order("created_at", { ascending: false });
 
-    if (data) {
-      setEntries(data);
+    if (fetchError) {
+      setLoadError("Não foi possível carregar seu Memorial. Confira a conexão e tente novamente.");
+    } else {
+      setLoadError("");
+      setEntries(data || []);
     }
     setLoading(false);
   };
@@ -63,6 +68,7 @@ export default function DiaryPage() {
     if (!userId) return;
 
     setSaving(true);
+    setSaveError("");
     const { error } = await supabase.from("user_diary").insert({
       user_id: userId,
       vivido_hoje: vividoHoje,
@@ -70,7 +76,7 @@ export default function DiaryPage() {
     });
 
     if (error) {
-      alert("Erro ao salvar diário: " + error.message + "\nVocê rodou o script diary_setup.sql no Supabase?");
+      setSaveError("Não foi possível guardar o Memorial. O texto continua disponível para tentar novamente.");
     } else {
       setVividoHoje("");
       setDeusFalou("");
@@ -119,6 +125,7 @@ export default function DiaryPage() {
         </button>
       </div>
 
+      {loadError && <div role="alert" className="mx-5 mt-5 rounded-xl border border-red-400 p-4 text-sm text-white">{loadError}<button type="button" className="block underline mt-2" onClick={() => void fetchEntries()}>Tentar novamente</button></div>}
       {/* Lista de Entradas */}
       <div className="px-6 pt-8 max-w-[600px] mx-auto">
         {entries.length === 0 ? (
@@ -203,6 +210,7 @@ export default function DiaryPage() {
               />
             </div>
             
+            {saveError && <p role="alert" className="mb-4 rounded-lg border border-red-400 p-3 text-sm text-white">{saveError}</p>}
             <button
               onClick={handleSave}
               disabled={saving}
