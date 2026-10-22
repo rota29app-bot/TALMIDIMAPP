@@ -59,6 +59,7 @@ export default function Home() {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [gender, setGender] = useState<"male" | "female">("male");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [userName, setUserName] = useState("Peregrino");
   const [justAdvanced, setJustAdvanced] = useState(false);
@@ -116,26 +117,36 @@ export default function Home() {
       if (fullName) setUserName(String(fullName).split(" ")[0]);
 
       // Verificar se preencheu o Radar Discipular
-      const { data: userRadars } = await supabase
+      const { data: userRadars, error: userRadarsError } = await supabase
         .from("user_radars")
         .select("id")
         .eq("user_id", session.user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
 
+      if (userRadarsError) {
+        setLoadError("Não foi possível consultar seu progresso. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
       if (!userRadars) {
         router.push("/radar");
         return;
       }
 
       // Verificar se assinou o PDD
-      const { data: userPdds } = await supabase
+      const { data: userPdds, error: userPddsError } = await supabase
         .from("user_pdds")
         .select("id")
         .eq("user_id", session.user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
 
+      if (userPddsError) {
+        setLoadError("Não foi possível consultar seu progresso. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
       if (!userPdds) {
         router.push("/pdd");
         return;
@@ -213,6 +224,8 @@ export default function Home() {
     }, 50);
     return () => clearTimeout(t);
   }, [loading, currentStageIndex]);
+
+  if (loadError) return <main className="min-h-screen bg-[#0F3D33] text-white p-8 flex flex-col justify-center gap-4"><p role="alert">{loadError}</p><button className="rounded-xl bg-[#C79A5B] text-[#12382F] font-bold p-4" onClick={() => window.location.reload()}>Tentar novamente</button></main>;
 
   if (loading) {
     return (
