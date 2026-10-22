@@ -15,6 +15,7 @@ export default function RadarResultPage() {
   const exportRef = useRef<HTMLDivElement>(null);
 
   const [mounted, setMounted] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [history, setHistory] = useState<any[]>([]);
   const [scores, setScores] = useState<number[]>([]);
   const [previousScores, setPreviousScores] = useState<number[] | null>(null);
@@ -37,7 +38,7 @@ export default function RadarResultPage() {
       }
       setMounted(true);
       
-      const { data } = await supabase
+      const { data, error: radarError } = await supabase
         .from("user_radars")
         .select("*")
         .eq("user_id", session.user.id)
@@ -46,6 +47,10 @@ export default function RadarResultPage() {
       const metaName = session.user.user_metadata?.name;
       if (metaName) setUserName(metaName);
 
+      if (radarError) {
+        setLoadError("Não foi possível carregar seu Radar. Confira a conexão e tente novamente.");
+        return;
+      }
       if (data && data.length > 0) {
         setHistory(data);
 
@@ -64,12 +69,14 @@ export default function RadarResultPage() {
           setPreviousTotal(oldScores.reduce((a, b) => a + b, 0));
         }
       } else {
-        alert("Nenhum radar encontrado no banco de dados. Redirecionando para o início.");
-        router.push("/radar");
+        setLoadError("Ainda não encontramos um Radar salvo nesta conta. Você pode retornar ao questionário.");
+        return;
       }
     };
     fetchRadar();
   }, [router, supabase]);
+
+  if (loadError) return <main className="min-h-screen bg-[#F8F5F0] p-8 flex flex-col justify-center gap-4 text-[#0F3D33]"><p role="alert">{loadError}</p><button onClick={() => window.location.reload()} className="rounded-xl bg-[#0F3D33] text-white p-4">Tentar carregar novamente</button><button className="underline" onClick={() => router.push("/radar")}>Voltar ao Radar</button></main>;
 
   if (!mounted || scores.length === 0) {
     return (
