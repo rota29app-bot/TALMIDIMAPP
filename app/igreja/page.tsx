@@ -145,7 +145,7 @@ export default function RegistroIgreja(){
     </form>}
     {mode==="membro"&&<form ref={formRef} onSubmit={requestJoin} id="rota29-form-membro" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
      <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Código do pastor</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
-     <p className="text-sm">Digite o código de 16 caracteres enviado pelo pastor. O código é uma solicitação de entrada, não uma autorização automática.</p>
+     <p className="text-sm">Digite o código de 16 caracteres enviado pelo pastor. Após entrar com Google, confirme o pedido tocando em “Solicitar aprovação pastoral” abaixo. O código não libera a jornada sozinho.</p>
      <input className={input+" font-mono tracking-widest"} aria-label="Código de convite" value={code} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-F0-9]/g,""))} minLength={16} maxLength={16} required/>
      {error&&<p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</p>}
      <button type="submit" disabled={saving||code.length!==16} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Solicitar aprovação pastoral"}</button>
