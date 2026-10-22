@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, BellRing, Clock, Save, Info, Users, MapPin } from "lucide-react";
+import { ArrowLeft, Clock, Save, Info, Users, MapPin } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 import DailyPrayerSettings from "../components/DailyPrayerSettings";
 import { createClient } from "../../utils/supabase/client";
@@ -12,7 +12,6 @@ export default function SettingsPage() {
   const supabase = createClient();
 
   const [mounted, setMounted] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission>("default");
 
   const [tsdTime, setTsdTime] = useState("06:30");
   const [pddTime, setPddTime] = useState("20:00");
@@ -32,7 +31,6 @@ export default function SettingsPage() {
     const carregarPerfil = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setMounted(true);
-      if ("Notification" in window) setPermission(Notification.permission);
       const savedTsd = localStorage.getItem("talmidim_tsd_time");
       const savedPdd = localStorage.getItem("talmidim_pdd_time");
       if (savedTsd) setTsdTime(savedTsd);
@@ -70,22 +68,6 @@ export default function SettingsPage() {
     }
   };
 
-  const requestPermission = async () => {
-    if (!("Notification" in window)) {
-      alert("Seu navegador não suporta notificações.");
-      return;
-    }
-    const result = await Notification.requestPermission();
-    setPermission(result);
-    
-    if (result === "granted") {
-      new Notification("Notificações Ativadas!", {
-        body: "Permissão concedida. Lembretes automáticos ainda dependem da configuração do serviço de envio.",
-        icon: "/icons/icon-192x192.png"
-      });
-    }
-  };
-
   const handleSave = () => {
     localStorage.setItem("talmidim_tsd_time", tsdTime);
     localStorage.setItem("talmidim_pdd_time", pddTime);
@@ -119,23 +101,9 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {permission !== "granted" && (
-          <div className="bg-accent/10 border border-accent/30 rounded-2xl p-5 mb-8 flex flex-col items-start gap-3">
-            <div className="flex items-center gap-3">
-              <BellRing className="text-accent" size={20} />
-              <h3 className="text-[15px] font-bold text-text-main">Ative as Notificações</h3>
-            </div>
-            <p className="text-[13px] text-text-muted">
-              Para receber os alertas no seu celular, você precisa permitir o envio de notificações.
-            </p>
-            <button 
-              onClick={requestPermission}
-              className="mt-2 bg-text-main text-bg-main px-4 py-2 rounded-lg text-[13px] font-bold active:scale-95 transition-all"
-            >
-              Permitir Notificações
-            </button>
-          </div>
-        )}
+        <div className="rounded-2xl border border-accent/30 bg-bg-card p-4 mb-7 text-sm text-text-main">
+          O ROTA29 ainda não envia notificações automáticas. Para receber lembretes, use a opção de adicionar ao calendário disponível abaixo.
+        </div>
 
         <div className="space-y-6">
           {(isAdmin || isPastor) && <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 space-y-3">
@@ -209,7 +177,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="text-[16px] font-bold text-text-main">Tempo a Sós com Deus</h3>
-                <p className="text-[12px] text-text-muted leading-tight mt-1">Lembrete para o seu tempo de leitura e oração diária.</p>
+                <p className="text-[12px] text-text-muted leading-tight mt-1">Horário de referência salvo neste aparelho; ainda não envia alertas automáticos.</p>
               </div>
             </div>
             <input 
@@ -238,7 +206,7 @@ export default function SettingsPage() {
                     <Info size={14} />
                   </button>
                 </div>
-                <p className="text-[12px] text-text-muted leading-tight mt-1">Lembrete para orar por 5 pessoas de seu círculo de relacionamentos.</p>
+                <p className="text-[12px] text-text-muted leading-tight mt-1">Horário de referência salvo neste aparelho; ainda não envia alertas automáticos.</p>
               </div>
             </div>
             <input 
@@ -268,7 +236,7 @@ export default function SettingsPage() {
           <div className="flex items-start gap-2 mt-4 text-text-muted bg-bg-card p-4 rounded-xl border border-accent/10">
             <Info size={16} className="text-accent mt-0.5 flex-shrink-0" />
             <p className="text-[11px] leading-relaxed">
-              Os horários ficam salvos neste aparelho. O envio automático de lembretes ainda não está implementado.
+              Estes horários são apenas preferências locais. Para avisos efetivos, utilize o calendário ou alarme do celular.
             </p>
           </div>
 
