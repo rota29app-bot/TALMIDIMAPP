@@ -15,6 +15,7 @@ export default function RadarPage() {
   const [currentAreaIndex, setCurrentAreaIndex] = useState(0);
   const [scores, setScores] = useState<Record<string, number[]>>({});
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,17 +82,20 @@ export default function RadarPage() {
         totalScores[`score_${area.id}`] = sum;
       });
 
-      if (userId) {
-        const { error } = await supabase.from("user_radars").insert({
-          user_id: userId,
-          ...totalScores
-        });
-        
-        if (error) {
-          alert("Erro ao salvar no banco de dados: " + error.message + "\nVocê rodou o radar_setup.sql no Supabase?");
-          setSaving(false);
-          return;
-        }
+      if (!userId) {
+        setSaveError("Sua sessão expirou. Faça login novamente para guardar suas respostas.");
+        setSaving(false);
+        return;
+      }
+      setSaveError("");
+      const { error } = await supabase.from("user_radars").insert({
+        user_id: userId,
+        ...totalScores
+      });
+      if (error) {
+        setSaveError("Não foi possível salvar o Radar. Suas respostas continuam nesta tela; verifique a conexão e tente novamente.");
+        setSaving(false);
+        return;
       }
 
       router.push("/radar/result");
@@ -208,6 +212,8 @@ export default function RadarPage() {
           </div>
         ))}
       </div>
+
+      {saveError && <p role="alert" className="mx-5 mb-28 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">{saveError}</p>}
 
       {/* Bottom Action Bar */}
       <div className="fixed bottom-0 w-full max-w-[420px] left-1/2 -translate-x-1/2 bg-gradient-to-t from-[#F8F5F0] via-[#F8F5F0] to-transparent pt-12 pb-6 px-6 z-20">
