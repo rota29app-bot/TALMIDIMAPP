@@ -18,13 +18,18 @@ export default function RadarPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.push("/start");
         return;
       }
+      const { data: permit, error: permitError } = await supabase.rpc("rota29_pilot_access");
+      if (permitError || permit?.allowed !== true) {
+        router.replace("/igreja");
+        return;
+      }
+      setMounted(true);
       setUserId(session.user.id);
       
       // Initialize scores state ONLY if empty
