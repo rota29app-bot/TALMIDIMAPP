@@ -153,11 +153,16 @@ export default function Home() {
       }
 
       // Buscar progresso no banco
-      const { data } = await supabase
+      const { data, error: unlockError } = await supabase
         .from("user_stage_unlocks")
         .select("current_stage_index")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
+      if (unlockError) {
+        setLoadError("Falha ao carregar suas estações. Seu progresso foi preservado; tente novamente.");
+        setLoading(false);
+        return;
+      }
 
       let resolvedIndex = 0;
       if (data) {
@@ -177,11 +182,16 @@ export default function Home() {
       // desbloqueada — necessário pra saber quais estão em prática
       // contínua (dia 8-20) e quais já concluíram (dia 21), já que agora
       // várias estações podem estar ativas ao mesmo tempo.
-      const { data: allDaysData } = await supabase
+      const { data: allDaysData, error: allDaysError } = await supabase
         .from("user_daily_progress")
         .select("stage_id, day_index")
         .eq("user_id", session.user.id)
         .in("stage_id", stageOrder);
+      if (allDaysError) {
+        setLoadError("Falha ao consultar os dias concluídos. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
 
       const dayMap: Record<string, number> = {};
       (allDaysData || []).forEach((row) => {
