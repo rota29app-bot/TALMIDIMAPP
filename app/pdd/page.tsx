@@ -24,6 +24,8 @@ export default function PDDPage() {
   const [tsdTime, setTsdTime] = useState("06:30");
   
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     const init = async () => {
@@ -41,12 +43,16 @@ export default function PDDPage() {
       setUserId(session.user.id);
       
       // Verifica se já preencheu PDD
-      const { data } = await supabase
+      const { data, error: checkError } = await supabase
         .from("user_pdds")
         .select("id")
         .eq("user_id", session.user.id)
-        .single();
-        
+        .limit(1)
+        .maybeSingle();
+      if (checkError) {
+        setLoadError("Não foi possível consultar seu plano. Verifique a conexão e atualize a página.");
+        return;
+      }
       if (data) {
         // Já tem PDD, vai pro Dashboard (ou Map)
         router.push("/");
@@ -69,15 +75,20 @@ export default function PDDPage() {
   const handleSubmit = async () => {
     if (selectedAreas.length === 0 || !actionPlan.trim() || !signature.trim()) return;
     
+    if (!userId || saving || loadError) return;
     setSaving(true);
-    if (userId) {
-      await supabase.from("user_pdds").insert({
-        user_id: userId,
-        priority_areas: selectedAreas.join(","),
-        action_plan: actionPlan,
-        accountability_partner: partner,
-        digital_signature: signature
-      });
+    setSaveError("");
+    const { error: insertError } = await supabase.from("user_pdds").insert({
+      user_id: userId,
+      priority_areas: selectedAreas.join(","),
+      action_plan: actionPlan,
+      accountability_partner: partner,
+      digital_signature: signature
+    });
+    if (insertError) {
+      setSaveError("Não foi possível salvar seu plano. O texto foi mantido; confira a conexão e tente novamente.");
+      setSaving(false);
+      return;
     }
 
     // Salva o horário escolhido como o horário do lembrete diário (a tela
@@ -171,7 +182,7 @@ export default function PDDPage() {
             onChange={e => setTsdTime(e.target.value)}
             className="w-full bg-[#F8F5F0] border border-[#E9DFCE] rounded-[12px] p-4 text-[#0F3D33] font-bold text-center text-[18px] focus:outline-none focus:border-[#C79A5B] focus:ring-1 focus:ring-[#C79A5B]/50 mb-1"
           />
-          <p className="text-[11px] text-[#888888] mb-6">Esse horário vira seu lembrete diário automaticamente.</p>
+          <p className="text-[11px] text-[#888888] mb-6">Este é seu horário de referência. Para receber alertas, adicione um lembrete pelo calendário em Meu ROTA29.</p>
 
           <p className="text-[14px] text-[#888888] mb-2 mt-2">Com quem você vai compartilhar esse alvo? (Accountability Partner)</p>
           <input
@@ -211,9 +222,10 @@ export default function PDDPage() {
       {/* Bottom Action Bar */}
       <div className="fixed bottom-0 w-full max-w-[420px] left-1/2 -translate-x-1/2 bg-gradient-to-t from-[#F8F5F0] via-[#F8F5F0] to-transparent pt-12 pb-6 px-6 z-20">
         <div className="w-full mx-auto">
+          {(saveError || loadError) && <p role="alert" className="mb-3 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">{saveError || loadError}</p>}
           <button
             onClick={handleSubmit}
-            disabled={!isValid || saving}
+            disabled={!isValid || saving || !!loadError}
             className="w-full bg-gradient-to-r from-[#C79A5B] to-[#b38a53] text-[#12382F] py-4 rounded-[16px] font-bold shadow-[0_10px_25px_rgba(198,155,92,0.2)] disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center gap-2"
           >
             {saving ? "Confirmando..." : "Firmar Compromisso"}
