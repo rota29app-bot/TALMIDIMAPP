@@ -26,6 +26,10 @@ export default function SettingsPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPastor, setIsPastor] = useState(false);
   const [isLeaderPG, setIsLeaderPG] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState("");
+  const [googleName, setGoogleName] = useState("");
+  const [googleAvatar, setGoogleAvatar] = useState("");
+  const [profileError, setProfileError] = useState("");
 
   useEffect(() => {
     const carregarPerfil = async () => {
@@ -36,6 +40,10 @@ export default function SettingsPage() {
       if (savedTsd) setTsdTime(savedTsd);
       if (savedPdd) setPddTime(savedPdd);
       if (!session) return;
+      setGoogleEmail(session.user.email || "");
+      setGoogleName(String(session.user.user_metadata?.full_name || session.user.user_metadata?.name || "Participante"));
+      const googlePhoto = session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture;
+      if (typeof googlePhoto === "string" && /^https:\/\//.test(googlePhoto)) setGoogleAvatar(googlePhoto);
       const { data } = await supabase
         .from("user_roles")
         .select("estado, cidade, idade, role, is_super_admin")
@@ -56,13 +64,16 @@ export default function SettingsPage() {
 
   const handleSalvarPerfil = async () => {
     setSalvandoPerfil(true);
+    setProfileError("");
     const { error } = await supabase.rpc("update_my_profile_details", {
       p_estado: estado || null,
       p_cidade: cidade || null,
       p_idade: idade ? Number(idade) : null,
     });
     setSalvandoPerfil(false);
-    if (!error) {
+    if (error) {
+      setProfileError("Não foi possível salvar o perfil. Confira a conexão e tente novamente.");
+    } else {
       setPerfilSalvo(true);
       setTimeout(() => setPerfilSalvo(false), 3000);
     }
@@ -118,8 +129,15 @@ export default function SettingsPage() {
             <p className="text-sm text-text-muted">Acompanhe os participantes e registre ações de cuidado.</p>
             <button onClick={() => router.push("/pgm")} className="block w-full bg-[#0F3D33] text-white py-3 rounded-xl font-bold">Abrir meu PG</button>
           </div>}
-          {!isAdmin && !isPastor && <DailyPrayerSettings />}
+          {!isAdmin && <DailyPrayerSettings />}
 
+          <section className="bg-bg-card border border-accent/20 rounded-2xl p-5" aria-label="Conta Google conectada">
+            <div className="flex items-center gap-3">
+              {googleAvatar ? <img src={googleAvatar} referrerPolicy="no-referrer" alt="Foto da conta Google" className="w-12 h-12 rounded-full object-cover" /> : <div aria-hidden="true" className="w-12 h-12 rounded-full bg-accent/20 grid place-items-center font-bold">{googleName.charAt(0)}</div>}
+              <div className="min-w-0"><p className="font-bold break-words">{googleName}</p><p className="text-sm text-text-muted break-all">{googleEmail}</p></div>
+            </div>
+            <p className="text-xs text-text-muted mt-3">Confira se esta é a conta Google utilizada para receber o convite. Outra conta pode ter um cadastro diferente.</p>
+          </section>
           {/* Perfil: estado, cidade, idade */}
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
             <div className="flex items-start gap-4 mb-4">
@@ -169,6 +187,7 @@ export default function SettingsPage() {
             </button>
           </div>
 
+          {profileError && <p role="alert" className="p-3 rounded-xl bg-red-50 text-red-800">{profileError}</p>}
           {/* TSD Time */}
           <div className="bg-bg-card border border-accent/20 rounded-2xl p-5 shadow-sm">
             <div className="flex items-start gap-4 mb-4">
