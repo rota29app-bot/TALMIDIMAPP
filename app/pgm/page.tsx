@@ -49,14 +49,15 @@ export default function PequenosGruposPage(){
   const {error:e}=await createClient().rpc("rota29_pg_manage",{
    p_action:action,p_group:group,p_name:name,p_leader:leader,p_member:member
   });
-  if(e)setError(e.message);
-  else{setNotice("Alteração salva.");await refresh();}
+  if(e){setError(e.message);setBusy(false);return false;}
+  setNotice("Alteração salva.");
+  await refresh();
   setBusy(false);
+  return true;
  };
  const create=async()=>{
   if(newName.trim().length<2){setError("Informe um nome para o grupo.");return;}
-  await manage("create",null,newName.trim());
-  setNewName("");
+  if(await manage("create",null,newName.trim())) setNewName("");
  };
  const openNotes=async(m:Member)=>{
   setSelectedMember(m);setNotes([]);setCareText("");setPastorOnly(false);setNotesLoading(true);setError("");
@@ -134,7 +135,7 @@ export default function PequenosGruposPage(){
          {members.filter(m=>!groups.some(other=>other.id!==g.id&&other.active&&other.leader_id===m.user_id)).map(m=><option value={m.user_id} key={m.user_id}>{m.name}</option>)}
         </select>
        </label>
-       {editing===g.id?<form className="flex gap-2" onSubmit={e=>{e.preventDefault();void manage("rename",g.id,editName.trim());setEditing(null);}}>
+       {editing===g.id?<form className="flex gap-2" onSubmit={e=>{e.preventDefault();void manage("rename",g.id,editName.trim()).then(ok=>{if(ok)setEditing(null);});}}>
         <input className={fieldClass} aria-label="Novo nome" value={editName} maxLength={90} onChange={e=>setEditName(e.target.value)}/>
         <button type="submit" disabled={busy||editName.trim().length<2} className={buttonClass} aria-label="Salvar novo nome"><Save size={18}/></button>
        </form>:<button className="text-sm underline" onClick={()=>{setEditing(g.id);setEditName(g.name);}}>Renomear</button>}
