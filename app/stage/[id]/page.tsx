@@ -182,14 +182,14 @@ function StagePageContent() {
       const {error}=await supabase.from("user_diary").insert({
         user_id:user.id,vivido_hoje:vivido||"—",deus_falou:falou||"—"
       });
-      if(error){alert("Falha no Memorial do teste administrativo: "+error.message);return false;}
+      if(error){alert("Não foi possível guardar o Memorial. Seu texto permanece nesta tela; confira a conexão e tente novamente.");return false;}
       setDayMemorialSaved(true);
       return true;
     }
     const {error}=await supabase.rpc("rota29_save_daily_memorial",{
       p_stage:id,p_day:dayIndex,p_vivido:vivido,p_deus_falou:falou
     });
-    if(error){alert("Falha ao salvar o Memorial: "+error.message);return false;}
+    if(error){alert("Não foi possível guardar o Memorial. Suas respostas permanecem nesta tela para tentar novamente.");return false;}
     setDayMemorialSaved(true);
     return true;
   };
