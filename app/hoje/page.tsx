@@ -74,27 +74,42 @@ export default function HojePage() {
         return;
       }
 
-      const { data: unlockData } = await supabase
+      const { data: unlockData, error: unlockError } = await supabase
         .from("user_stage_unlocks")
         .select("current_stage_index")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
+      if (unlockError) {
+        setLoadError("Não foi possível carregar suas estações. Seu progresso permanece salvo.");
+        setLoading(false);
+        return;
+      }
 
       const resolvedIndex = unlockData?.current_stage_index ?? 0;
 
-      const { data: allDaysData } = await supabase
+      const { data: allDaysData, error: allDaysError } = await supabase
         .from("user_daily_progress")
         .select("stage_id, day_index")
         .eq("user_id", session.user.id)
         .in("stage_id", stageOrder);
+      if (allDaysError) {
+        setLoadError("Falha ao consultar os dias concluídos. Confira a conexão e tente novamente.");
+        setLoading(false);
+        return;
+      }
 
       const dayMap: Record<string, number> = {};
       (allDaysData || []).forEach((row) => {
         dayMap[row.stage_id] = row.day_index;
       });
 
-      const { data: badge } = await supabase.from("user_badges")
+      const { data: badge, error: badgeError } = await supabase.from("user_badges")
         .select("id").eq("user_id",session.user.id).eq("badge_id","house").maybeSingle();
+      if (badgeError) {
+        setLoadError("Não foi possível verificar sua insígnia. Nenhum progresso foi alterado.");
+        setLoading(false);
+        return;
+      }
       const done = !!badge;
       setJourneyDone(done);
 
