@@ -658,7 +658,13 @@ export default function Home() {
                   }}
                 >
                   <span
-                    className="leading-none tracking-tight"
+                    className="uppercase font-bold"
+                    style={{ fontSize: 9, color: "#0F3D33", letterSpacing: "0.12em", lineHeight: 1.2 }}
+                  >
+                    Estação
+                  </span>
+                  <span
+                    className="leading-none tracking-tight mt-1"
                     style={{ fontSize: 20, color: "#0F3D33", fontWeight: 800 }}
                   >
                     {stageNumbers[id]}
@@ -669,6 +675,14 @@ export default function Home() {
                   >
                     {title}
                   </span>
+                  {isCurrent && (
+                    <span
+                      className="uppercase font-bold mt-1.5"
+                      style={{ fontSize: 8, color: "#0F3D33", lineHeight: 1.25, letterSpacing: "0.025em" }}
+                    >
+                      Dia {stageDay || 1} · Atual
+                    </span>
+                  )}
                 </div>
               </div>
             );
