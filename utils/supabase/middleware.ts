@@ -34,6 +34,7 @@ export async function updateSession(request: NextRequest) {
   // Array of public routes
   const publicRoutes = [
     '/start', '/auth/callback', '/pilot-status', '/splash.mp4', '/splash_v2.mp4', '/vinheta.mp4',
+    '/api/igreja/cadastro', // a rota POST retorna 401 JSON se a sessão estiver ausente
     '/sw.js', '/manifest.json', '/offline.html', '/pwa-icon-192.png',
     '/pwa-icon-512.png', '/pwa-icon-180.png',
   ];
