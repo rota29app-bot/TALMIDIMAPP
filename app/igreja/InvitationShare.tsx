@@ -4,7 +4,8 @@ import {Copy} from "lucide-react";
 export default function InvitationShare({code,name}:{code:string;name?:string|null}){
  const [notice,setNotice]=useState("");
  const link=()=>{
-  const url=new URL("/igreja",window.location.origin);
+  // Nunca distribuir URLs temporárias de deploy: o convite sempre usa o piloto oficial.
+  const url=new URL("/igreja","https://rota29-piloto.vercel.app");
   url.searchParams.set("convite",code);
   return url.toString();
  };
