@@ -38,16 +38,26 @@ test("PWA is installable on iPhone and allows readable zoom", () => {
   assert.doesNotMatch(source("app/layout.tsx"), /userScalable: false/);
 });
 
-test("iOS church form shows missing fields and recovers from network failures", () => {
+test("iOS church form submits on tap without native validation", () => {
   const content = source("app/igreja/page.tsx");
-  assert.match(content, /<form ref=\{formRef\} noValidate onSubmit=\{register\}/);
+  assert.match(content, /<form ref=\{formRef\} noValidate onSubmit=\{ev=>/);
+  assert.match(content, /type="button" onClick=\{\(\)=>\{if\(formRef\.current\)void register\(formRef\.current\)/);
   for (const name of ["nome", "cidade", "estado", "pastor", "contato", "convidados", "aceite"]) {
-    assert.match(content, new RegExp('\u0022' + name + '\u0022,'), "Must validate " + name);
+    assert.match(content, new RegExp('"' + name + '",'), "Must validate " + name);
   }
+  assert.match(content, /submitLockRef\.current=true/);
   assert.match(content, /setFieldError\(\{field,message\}\)/);
   assert.match(content, /element\.scrollIntoView\(/);
   assert.match(content, /element\.focus\(/);
-  assert.match(content, /setError\("Não foi possível enviar o cadastro/);
-  assert.match(content, /finally\{\s*setSaving\(false\)/);
-  assert.match(content, /createClient\(\)\.rpc\("pilot_register_church"/);
+  assert.match(content, /fetch\("\/api\/igreja\/cadastro"/);
+  assert.match(content, /finally\{\s*submitLockRef\.current=false;/);
+});
+
+test("Church registration API is authenticated and keeps database authorization", () => {
+  const route = source("app/api/igreja/cadastro/route.ts");
+  assert.match(route, /db\.auth\.getUser\(\)/);
+  assert.match(route, /if\(authError\|\|!user\)/);
+  assert.match(route, /db\.rpc\("pilot_register_church"/);
+  assert.match(route, /p_aceite:aceite/);
+  assert.match(source("utils/supabase/middleware.ts"), /'\/api\/igreja\/cadastro'/);
 });
