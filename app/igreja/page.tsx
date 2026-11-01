@@ -23,6 +23,7 @@ export default function RegistroIgreja(){
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
  const [error,setError]=useState("");
+ const [fieldError,setFieldError]=useState<{field:string;message:string}|null>(null);
  const [notice,setNotice]=useState("");
  const [code,setCode]=useState("");
  const [invitedCode,setInvitedCode]=useState("");
@@ -35,7 +36,7 @@ export default function RegistroIgreja(){
   return()=>window.clearTimeout(handle);
  },[mode]);
  const chooseMode=(next:"pastor"|"membro")=>{
-  setError("");setNotice("");
+  setError("");setNotice("");setFieldError(null);
   setMode(next);
  };
  const load=useCallback(async()=>{
@@ -57,22 +58,66 @@ export default function RegistroIgreja(){
  },[router]);
  useEffect(()=>{void load();},[load]);
  const register=async(ev:FormEvent<HTMLFormElement>)=>{
-  ev.preventDefault();if(saving)return;
-  setError("");setNotice("");setSaving(true);
-  const data=new FormData(ev.currentTarget);
-  const {error:e}=await createClient().rpc("pilot_register_church",{
-   p_nome:String(data.get("nome")||"").trim(),
-   p_cidade:String(data.get("cidade")||"").trim(),
-   p_estado:String(data.get("estado")||"").trim().toUpperCase(),
-   p_pastor:String(data.get("pastor")||"").trim(),
-   p_contato:String(data.get("contato")||"").trim(),
-   p_convidados:Number(data.get("convidados")),p_aceite:data.get("aceite")==="on"
-  });
-  setSaving(false);
-  if(e){setError(e.message);return;}
-  setNotice("Cadastro recebido. A coordenação precisa aprovar sua igreja antes de liberar convites.");
-  await load();
-  window.scrollTo({top:0,behavior:'smooth'});
+  ev.preventDefault();
+  if(saving)return;
+  const form=ev.currentTarget;
+  const data=new FormData(form);
+  const values={
+   nome:String(data.get("nome")||"").trim(),
+   cidade:String(data.get("cidade")||"").trim(),
+   estado:String(data.get("estado")||"").trim().toUpperCase(),
+   pastor:String(data.get("pastor")||"").trim(),
+   contato:String(data.get("contato")||"").trim(),
+   convidados:String(data.get("convidados")||"").trim(),
+   aceite:data.get("aceite")==="on"
+  };
+  setError("");setNotice("");setFieldError(null);
+  // Validação explícita: o Safari/iOS pode impedir o submit sem mostrar qual campo falta.
+  const checks:[string,string,boolean][]=[
+   ["nome","Informe o nome oficial da igreja (mínimo de 4 caracteres).",values.nome.length>=4&&values.nome.length<=130],
+   ["cidade","Informe a cidade da igreja.",values.cidade.length>0],
+   ["estado","Informe a UF com duas letras (por exemplo, AP).",/^[A-Z]{2}$/.test(values.estado)],
+   ["pastor","Informe o nome do pastor responsável.",values.pastor.length>0],
+   ["contato","Informe um e-mail ou telefone para contato com a igreja.",values.contato.length>0],
+   ["convidados","Informe a quantidade prevista de participantes, de 0 a 10.",/^\d+$/.test(values.convidados)&&Number(values.convidados)<=10],
+   ["aceite","Confirme a autorização institucional para enviar o cadastro.",values.aceite]
+  ];
+  const invalid=checks.find(([, ,valid])=>!valid);
+  if(invalid){
+   const [field,message]=invalid;
+   setError(message);
+   setFieldError({field,message});
+   const element=form.elements.namedItem(field);
+   if(element instanceof HTMLElement){
+    window.requestAnimationFrame(()=>{
+     element.scrollIntoView({behavior:"smooth",block:"center"});
+     element.focus({preventScroll:true});
+    });
+   }
+   return;
+  }
+  setSaving(true);
+  try{
+   const {error:e}=await createClient().rpc("pilot_register_church",{
+    p_nome:values.nome,
+    p_cidade:values.cidade,
+    p_estado:values.estado,
+    p_pastor:values.pastor,
+    p_contato:values.contato,
+    p_convidados:Number(values.convidados),
+    p_aceite:values.aceite
+   });
+   if(e){setError(e.message);return;}
+   setNotice("Cadastro recebido. A coordenação precisa aprovar sua igreja antes de liberar convites.");
+   try{await load();}catch{
+    setNotice("Cadastro enviado. Não foi possível atualizar a tela; reabra Minha igreja para conferir a aprovação.");
+   }
+   window.scrollTo({top:0,behavior:"smooth"});
+  }catch{
+   setError("Não foi possível enviar o cadastro. Verifique sua conexão e tente novamente. No iPhone, prefira abrir o link diretamente no Safari em vez do navegador do WhatsApp.");
+  }finally{
+   setSaving(false);
+  }
  };
  const requestJoin=async(ev:FormEvent<HTMLFormElement>)=>{
   ev.preventDefault();if(saving)return;
@@ -131,15 +176,15 @@ export default function RegistroIgreja(){
      <button type="button" aria-pressed={mode==="pastor"} onClick={()=>chooseMode("pastor")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="pastor"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Building2/><strong className="block">Cadastrar minha igreja</strong><span className="text-xs">Somente para responsáveis por uma nova igreja</span></button>
      {church?.role!=="pastor"&&<button type="button" aria-pressed={mode==="membro"} onClick={()=>chooseMode("membro")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="membro"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Users/><strong className="block">Tenho convite de uma igreja</strong><span className="text-xs">Inclusive pastores convidados como participantes</span></button>}
     </div>
-    {mode==="pastor"&&<form ref={formRef} onSubmit={register} id="rota29-form-pastor" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
+    {mode==="pastor"&&<form ref={formRef} noValidate onSubmit={register} onInput={ev=>{const target=ev.target;if(target instanceof HTMLInputElement&&target.name===fieldError?.field){setFieldError(null);setError("");}}} id="rota29-form-pastor" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
      <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Cadastrar minha igreja</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
      <p className="text-sm">Preencha os dados abaixo e toque em <strong>Enviar cadastro da igreja</strong>. Só depois disso a coordenação receberá sua solicitação.</p>
-     <label className="block text-sm">Nome oficial<input name="nome" className={input} minLength={4} maxLength={130} required/></label>
-     <div className="grid grid-cols-[1fr_80px] gap-2"><label className="block text-sm">Cidade<input name="cidade" className={input} maxLength={90} required/></label><label className="block text-sm">UF<input name="estado" className={input} pattern="[A-Za-z]{2}" minLength={2} maxLength={2} required/></label></div>
-     <label className="block text-sm">Pastor responsável<input name="pastor" className={input} maxLength={130} required/></label>
-     <label className="block text-sm">E-mail ou telefone da igreja<input name="contato" className={input} maxLength={150} required/></label>
-     <label className="block text-sm">Participantes previstos (até 10 além do pastor)<input name="convidados" type="number" min={0} max={10} required className={input}/></label>
-     <label className="flex gap-2 text-sm"><input type="checkbox" name="aceite" required/>Confirmo a autorização institucional e o aviso de tratamento dos dados do piloto.</label>
+     <label className="block text-sm">Nome oficial<input name="nome" className={input} minLength={4} maxLength={130} required aria-invalid={fieldError?.field==="nome"}/>{fieldError?.field==="nome"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
+     <div className="grid grid-cols-[1fr_80px] gap-2"><label className="block text-sm">Cidade<input name="cidade" className={input} maxLength={90} required aria-invalid={fieldError?.field==="cidade"}/>{fieldError?.field==="cidade"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label><label className="block text-sm">UF<input name="estado" className={input} pattern="[A-Za-z]{2}" minLength={2} maxLength={2} required autoCapitalize="characters" aria-invalid={fieldError?.field==="estado"}/>{fieldError?.field==="estado"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label></div>
+     <label className="block text-sm">Pastor responsável<input name="pastor" className={input} maxLength={130} required aria-invalid={fieldError?.field==="pastor"}/>{fieldError?.field==="pastor"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
+     <label className="block text-sm">E-mail ou telefone da igreja<input name="contato" className={input} maxLength={150} required aria-invalid={fieldError?.field==="contato"}/>{fieldError?.field==="contato"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
+     <label className="block text-sm">Participantes previstos (até 10 além do pastor)<input name="convidados" type="number" min={0} max={10} required inputMode="numeric" className={input} aria-invalid={fieldError?.field==="convidados"}/>{fieldError?.field==="convidados"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
+     <label className="flex gap-2 text-sm"><input type="checkbox" name="aceite" required aria-invalid={fieldError?.field==="aceite"}/>Confirmo a autorização institucional e o aviso de tratamento dos dados do piloto.</label>
      {error&&<p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</p>}
      <button type="submit" disabled={saving} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Enviar cadastro da igreja"}</button>
     </form>}
