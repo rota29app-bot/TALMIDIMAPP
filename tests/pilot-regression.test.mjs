@@ -26,9 +26,34 @@ test("Participant pages require church access", () => {
   assert.match(source("utils/supabase/middleware.ts"), /rota29_pilot_access/);
 });
 
-test("Institutional invitations preserve Google OAuth context", () => {
-  assert.match(source("app/auth/callback/route.ts"), /searchParams\.set\("convite", invite\)/);
-  assert.match(source("app/igreja/InvitationShare.tsx"), /searchParams\.set\("convite",code\)/);
+test("Church-created invitation never offers new church registration", () => {
+  const page = source("app/igreja/page.tsx");
+  const shared = source("app/igreja/InvitationShare.tsx");
+  const start = source("app/start/page.tsx");
+  const callback = source("app/auth/callback/route.ts");
+  const context = source("utils/invitation-context.ts");
+  assert.match(shared, /new URL\("\/igreja","https:\/\/rota29-piloto\.vercel\.app"\)/);
+  assert.match(shared, /searchParams\.set\("convite",code\)/);
+  assert.match(page, /if\(invitedCode\)return <InvitationJoin/);
+  assert.match(page, /const incoming=getInvitationContext\(\)/);
+  assert.match(page, /if\(getInvitationContext\(\)!==null\)/);
+  assert.match(page, /name="novaIgreja"/);
+  assert.match(page, /values\.novaIgreja/);
+  assert.match(start, /const invitation = getInvitationContext\(\)/);
+  assert.match(start, /if \(invitation !== null\)/);
+  assert.match(start, /router\.replace\("\/igreja\?convite="/);
+  assert.match(start, /const invite = getInvitationContext\(\)/);
+  assert.match(callback, /target\.searchParams\.set\("convite",/);
+  assert.match(context, /window\.sessionStorage\.setItem/);
+  assert.match(context, /"INVALID"/);
+});
+
+test("Invite-specific screen only permits join, not creating an institution", () => {
+  const invitePage = source("app/igreja/InvitationJoin.tsx");
+  assert.match(invitePage, /Convite para participar/);
+  assert.match(invitePage, /Solicitar vínculo com /);
+  assert.doesNotMatch(invitePage, /pilot_register_church/);
+  assert.match(invitePage, /pilot_join_church/);
 });
 
 test("PWA is installable on iPhone and allows readable zoom", () => {
