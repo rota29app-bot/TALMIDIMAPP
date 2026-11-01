@@ -37,3 +37,17 @@ test("PWA is installable on iPhone and allows readable zoom", () => {
   assert.ok(manifest.icons?.some(x => x.sizes === "192x192"));
   assert.doesNotMatch(source("app/layout.tsx"), /userScalable: false/);
 });
+
+test("iOS church form shows missing fields and recovers from network failures", () => {
+  const content = source("app/igreja/page.tsx");
+  assert.match(content, /<form ref=\{formRef\} noValidate onSubmit=\{register\}/);
+  for (const name of ["nome", "cidade", "estado", "pastor", "contato", "convidados", "aceite"]) {
+    assert.match(content, new RegExp('\u0022' + name + '\u0022,'), "Must validate " + name);
+  }
+  assert.match(content, /setFieldError\(\{field,message\}\)/);
+  assert.match(content, /element\.scrollIntoView\(/);
+  assert.match(content, /element\.focus\(/);
+  assert.match(content, /setError\("Não foi possível enviar o cadastro/);
+  assert.match(content, /finally\{\s*setSaving\(false\)/);
+  assert.match(content, /createClient\(\)\.rpc\("pilot_register_church"/);
+});
