@@ -498,7 +498,7 @@ export const stages: Stage[] = [
         "title": "Dia 4",
         "confronto": "Seus filhos, cônjuge ou pais sabem que você está nesta jornada de discipulado? Eles veem diferença em você?",
         "direcao": "A fé que não transforma a convivência familiar é fé que ainda não chegou em casa.",
-        "acao": "Conta para sua família o que é o Talmidim.\nNão pregue — compartilhe o que está vivendo.\nPergunte o que eles percebem de diferente em você.\nOuça sem se defender.",
+        "acao": "Conta para sua família o que é o ROTA29.\nNão pregue — compartilhe o que está vivendo.\nPergunte o que eles percebem de diferente em você.\nOuça sem se defender.",
         "artigoRico": {
           "titulo": "Quando a Fé Reúne a Família",
           "texto": "É possível que todos em uma família sejam cristãos e, ainda assim, cada um viva sua espiritualidade de forma isolada. Existe algo especial quando uma família aprende a buscar a Deus junta."
@@ -1907,7 +1907,7 @@ export const stages: Stage[] = [
       {
         "day": 21,
         "title": "Dia 21",
-        "confronto": "Você termina a jornada inteira do Talmidim. O que permanece?",
+        "confronto": "Você termina a jornada inteira do ROTA29. O que permanece?",
         "direcao": "Não há graduação no discipulado — há aprofundamento. O fim desta jornada é o início de uma vida discipular mais intencional.",
         "acao": "Escreva uma carta para você mesmo — a ser lida em 1 ano.\nO que você quer ter se tornado?\nO que você não quer ter abandonado?\nOre sobre o que escreveu."
       }
@@ -1915,7 +1915,8 @@ export const stages: Stage[] = [
   }
 ];
 
-export const stageOrder = stages.map((s) => s.id);
+// Piloto: somente Intimidade, Família e Compaixão, sem excluir as outras estações.
+export const stageOrder = ["house", "street", "office"];
 
 export const getStage = (id: string) => stages.find((s) => s.id === id);
 

@@ -1,15 +1,5 @@
 import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  // Desativado por enquanto: o service worker do PWA estava guardando versões
-  // antigas do app em cache e fazendo telas corrigidas "voltarem" sozinhas.
-  disable: true,
-});
-
-const nextConfig: NextConfig = {
-  turbopack: {},
-};
-
-export default withPWA(nextConfig);
+// PWA ROTA29 servido em /sw.js com atualização online-first.
+// Evita o cache antigo que causava telas e login desatualizados.
+const nextConfig: NextConfig = { turbopack: {} };
+export default nextConfig;

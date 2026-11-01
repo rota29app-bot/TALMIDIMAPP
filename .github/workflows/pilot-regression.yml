@@ -1,0 +1,20 @@
+name: ROTA29 pilot regression checks
+on:
+  push:
+    branches:
+      - rota29/pilot-readiness
+  pull_request:
+    branches:
+      - rota29/pilot-readiness
+permissions:
+  contents: read
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify participant flow
+        run: node --test tests/pilot-regression.test.mjs

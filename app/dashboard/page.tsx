@@ -23,7 +23,7 @@ const badgeNames: Record<string, string> = {
   // Insígnia final — não é o prêmio de uma estação, é o selo de quem
   // percorreu as 7 e perseverou nas práticas até o fim. Ideia do Nilton:
   // o objetivo não é colecionar insígnias, é vestir o caráter de Cristo.
-  talmid: "Insígnia Talmid"
+  talmid: "Insígnia do Discípulo"
 };
 
 const badgeContents: Record<string, string> = {
@@ -34,7 +34,7 @@ const badgeContents: Record<string, string> = {
   construction: "Administrar à luz do senhorio de Cristo torna a vida mais leve, mais coerente e mais frutífera. Tudo o que temos foi confiado por Ele para glória dEle.",
   rooftop: "Você não foi chamado para competir, impressionar ou se destacar, mas para ser fiel onde Deus o colocou. A fidelidade no oculto precede a frutificação no visível.",
   city: "A fé cristã foi pensada para ser vivida em companhia. Em comunidade aprendemos a amar, perdoar, servir, crescer e permanecer. Você não foi chamado para andar sozinho.",
-  talmid: "Você não colecionou sete emblemas. Você percorreu sete estações, perseverou nas práticas diárias e concluiu seu Plano de Desenvolvimento Discipular. Talmid significa discípulo — e essa insígnia não celebra ter terminado um curso, celebra ter perseverado num processo de transformação."
+  talmid: "Você não colecionou sete emblemas. Você percorreu sete estações, perseverou nas práticas diárias e concluiu seu Plano de Desenvolvimento Discipular. A fé se desenvolve no cotidiano — e essa insígnia não celebra ter terminado um curso, celebra ter perseverado num processo de transformação."
 };
 
 const badgeIcons: Record<string, React.ElementType> = {
@@ -80,53 +80,54 @@ export default function DashboardPage() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-[#0a0f0a] flex justify-center items-center">
-        <div className="w-8 h-8 border-4 border-[#eaddc5]/30 border-t-[#c69b5c] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#0C2D26] flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-[#E9DFCE]/30 border-t-[#C79A5B] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   const totalUnlocked = unlockedBadges.length;
-  const totalAvailable = stageOrder.length;
+  const badgeStages = stageOrder.length === 3 ? ["house"] : stageOrder;
+  const totalAvailable = badgeStages.length;
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a] text-[#eaddc5] font-sans pb-32 relative">
+    <div className="min-h-screen bg-[#0C2D26] text-[#E9DFCE] font-sans pb-32 relative">
       
       {/* Header */}
-      <div className="pt-12 pb-8 px-6 border-b border-[#c69b5c]/10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1a201c] to-[#0a0f0a]">
+      <div className="pt-12 pb-8 px-6 border-b border-[#C79A5B]/10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1a201c] to-[#0C2D26]">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
-            <Trophy className="text-[#c69b5c]" size={28} />
+            <Trophy className="text-[#C79A5B]" size={28} />
             <h1 className="text-[28px] font-serif font-bold text-white">Conquistas</h1>
           </div>
           <button 
             onClick={() => router.push("/settings")}
-            className="w-10 h-10 bg-[#111812] rounded-full flex items-center justify-center border border-[#c69b5c]/20 active:scale-95 transition-all"
+            className="w-10 h-10 bg-[#12382F] rounded-full flex items-center justify-center border border-[#C79A5B]/20 active:scale-95 transition-all"
           >
-            <Bell size={18} className="text-[#c69b5c]" />
+            <Bell size={18} className="text-[#C79A5B]" />
           </button>
         </div>
         
-        <p className="text-[#eaddc5]/70 text-[14px]">Sua prateleira de insígnias e vitórias na Jornada.</p>
+        <p className="text-[#E9DFCE]/70 text-[14px]">Sua prateleira de insígnias e vitórias na Jornada.</p>
 
         {/* Explicação do conceito (pedido do Nilton: ele não achou nada
             explicando o que são as insígnias em lugar nenhum do app). */}
-        <div className="mt-4 bg-[#111812] border border-[#c69b5c]/20 rounded-2xl p-4">
+        <div className="mt-4 bg-[#12382F] border border-[#C79A5B]/20 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-1.5">
-            <HelpCircle size={15} className="text-[#c69b5c]" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-[#c69b5c]">O que são as insígnias?</span>
+            <HelpCircle size={15} className="text-[#C79A5B]" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#C79A5B]">O que são as insígnias?</span>
           </div>
-          <p className="text-[13px] text-[#eaddc5]/80 leading-relaxed">
+          <p className="text-[13px] text-[#E9DFCE]/80 leading-relaxed">
             Cada insígnia marca uma estação concluída: 7 dias de fundamento e 21 dias de prática. Elas não são troféus para colecionar — representam perseverança e a formação do caráter de Cristo em você, não um curso terminado.
           </p>
         </div>
 
-        <div className="mt-4 bg-[#111812] border border-[#c69b5c]/20 rounded-2xl p-4 flex items-center justify-between">
+        <div className="mt-4 bg-[#12382F] border border-[#C79A5B]/20 rounded-2xl p-4 flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold tracking-widest text-[#c69b5c] uppercase mb-1">Progresso Global</div>
+            <div className="text-[11px] font-bold tracking-widest text-[#C79A5B] uppercase mb-1">Progresso Global</div>
             <div className="text-white font-medium">{totalUnlocked} de {totalAvailable} Estações</div>
           </div>
-          <div className="text-[24px] font-bold text-[#c69b5c]">
+          <div className="text-[24px] font-bold text-[#C79A5B]">
             {Math.round((totalUnlocked / totalAvailable) * 100)}%
           </div>
         </div>
@@ -135,7 +136,7 @@ export default function DashboardPage() {
       {/* Badges Grid */}
       <div className="px-6 pt-8 max-w-[600px] mx-auto">
         <div className="grid grid-cols-2 gap-4">
-          {stageOrder.map((stageId) => {
+          {badgeStages.map((stageId) => {
             const isUnlocked = unlockedBadges.includes(stageId);
             const stageInfo = getStage(stageId);
             const badgeName = badgeNames[stageId] || stageInfo?.title;
@@ -147,26 +148,26 @@ export default function DashboardPage() {
                 onClick={() => { if(isUnlocked) setSelectedBadge(stageId); }}
                 className={`relative aspect-[4/5] rounded-[24px] border flex flex-col items-center justify-center p-4 transition-all duration-500 overflow-hidden cursor-pointer
                   ${isUnlocked 
-                    ? "bg-[#111812] border-[#c69b5c]/40 shadow-[0_10px_30px_rgba(198,155,92,0.1)] active:scale-95" 
-                    : "bg-[#111812]/50 border-white/5 opacity-70 grayscale"
+                    ? "bg-[#12382F] border-[#C79A5B]/40 shadow-[0_10px_30px_rgba(198,155,92,0.1)] active:scale-95" 
+                    : "bg-[#12382F]/50 border-white/5 opacity-70 grayscale"
                   }`}
               >
                 {/* Visual SVG Badge Coin */}
                 <div className={`w-20 h-20 rounded-full flex items-center justify-center relative mb-4 shadow-xl transition-all duration-700
-                  ${isUnlocked ? "bg-gradient-to-br from-[#fdfaf6] via-[#d5b080] to-[#b38a53] scale-110" : "bg-[#1f2620] scale-90"}
+                  ${isUnlocked ? "bg-gradient-to-br from-[#F8F5F0] via-[#C79A5B] to-[#b38a53] scale-110" : "bg-[#1f2620] scale-90"}
                 `}>
                   {/* Inner ring */}
                   <div className={`absolute inset-1 rounded-full border-2 
-                    ${isUnlocked ? "border-[#111812]/20" : "border-black/40"}`}>
+                    ${isUnlocked ? "border-[#12382F]/20" : "border-black/40"}`}>
                   </div>
                   
                   <BadgeIcon 
                     size={32} 
-                    className={isUnlocked ? "text-[#111812]" : "text-white/20"} 
+                    className={isUnlocked ? "text-[#12382F]" : "text-white/20"} 
                   />
                   
                   {!isUnlocked && (
-                    <div className="absolute bottom-1 right-1 bg-[#0a0f0a] rounded-full p-1 border border-white/10">
+                    <div className="absolute bottom-1 right-1 bg-[#0C2D26] rounded-full p-1 border border-white/10">
                       <Lock size={10} className="text-white/40" />
                     </div>
                   )}
@@ -176,7 +177,7 @@ export default function DashboardPage() {
                   ${isUnlocked ? "text-white" : "text-white/40"}`}>
                   {badgeName}
                 </h3>
-                <p className="text-[11px] uppercase tracking-wider text-[#c69b5c] text-center font-bold">
+                <p className="text-[11px] uppercase tracking-wider text-[#C79A5B] text-center font-bold">
                   {stageInfo?.title}
                 </p>
 
@@ -188,7 +189,7 @@ export default function DashboardPage() {
 
                 {/* Glow se desbloqueado */}
                 {isUnlocked && (
-                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#c69b5c]/20 blur-2xl rounded-full pointer-events-none"></div>
+                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#C79A5B]/20 blur-2xl rounded-full pointer-events-none"></div>
                 )}
               </div>
             );
@@ -197,37 +198,37 @@ export default function DashboardPage() {
 
         {/* INSÍGNIA TALMID — não é o prêmio de uma estação, é o selo final
             de quem completou as 7 e perseverou nas práticas até o fim. */}
-        {(() => {
+        {stageOrder.length === 7 && (() => {
           const isTalmidUnlocked = totalUnlocked === totalAvailable;
           return (
             <div
               onClick={() => { if (isTalmidUnlocked) setSelectedBadge("talmid"); }}
               className={`relative rounded-[24px] border flex items-center gap-4 p-5 mt-4 transition-all duration-500 overflow-hidden
                 ${isTalmidUnlocked
-                  ? "bg-gradient-to-r from-[#1a201c] to-[#111812] border-[#c69b5c]/50 shadow-[0_10px_30px_rgba(198,155,92,0.15)] cursor-pointer active:scale-[0.98]"
-                  : "bg-[#111812]/50 border-white/5 opacity-70 grayscale cursor-default"
+                  ? "bg-gradient-to-r from-[#1a201c] to-[#12382F] border-[#C79A5B]/50 shadow-[0_10px_30px_rgba(198,155,92,0.15)] cursor-pointer active:scale-[0.98]"
+                  : "bg-[#12382F]/50 border-white/5 opacity-70 grayscale cursor-default"
                 }`}
             >
               <div className={`w-16 h-16 flex-shrink-0 rounded-full flex items-center justify-center relative shadow-xl
-                ${isTalmidUnlocked ? "bg-gradient-to-br from-[#fdfaf6] via-[#d5b080] to-[#b38a53]" : "bg-[#1f2620]"}`}
+                ${isTalmidUnlocked ? "bg-gradient-to-br from-[#F8F5F0] via-[#C79A5B] to-[#b38a53]" : "bg-[#1f2620]"}`}
               >
-                <Star size={28} className={isTalmidUnlocked ? "text-[#111812]" : "text-white/20"} />
+                <Star size={28} className={isTalmidUnlocked ? "text-[#12382F]" : "text-white/20"} />
                 {!isTalmidUnlocked && (
-                  <div className="absolute bottom-0 right-0 bg-[#0a0f0a] rounded-full p-1 border border-white/10">
+                  <div className="absolute bottom-0 right-0 bg-[#0C2D26] rounded-full p-1 border border-white/10">
                     <Lock size={10} className="text-white/40" />
                   </div>
                 )}
               </div>
               <div>
                 <h3 className={`text-[16px] font-bold leading-tight ${isTalmidUnlocked ? "text-white" : "text-white/40"}`}>
-                  Insígnia Talmid
+                  Insígnia do Discípulo
                 </h3>
-                <p className="text-[12px] text-[#eaddc5]/60 mt-0.5">
+                <p className="text-[12px] text-[#E9DFCE]/60 mt-0.5">
                   {isTalmidUnlocked ? "Concedida a quem concluiu toda a jornada" : "Conclua as 7 estações para desbloquear"}
                 </p>
               </div>
               {isTalmidUnlocked && (
-                <div className="absolute -top-8 -right-8 w-24 h-24 bg-[#c69b5c]/20 blur-2xl rounded-full pointer-events-none"></div>
+                <div className="absolute -top-8 -right-8 w-24 h-24 bg-[#C79A5B]/20 blur-2xl rounded-full pointer-events-none"></div>
               )}
             </div>
           );
@@ -237,7 +238,7 @@ export default function DashboardPage() {
       {/* Modal para Insígnia */}
       {selectedBadge && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-[#111812] border border-[#c69b5c]/30 rounded-3xl p-8 max-w-[400px] w-full text-center relative shadow-2xl">
+          <div className="bg-[#12382F] border border-[#C79A5B]/30 rounded-3xl p-8 max-w-[400px] w-full text-center relative shadow-2xl">
             <button 
               onClick={() => setSelectedBadge(null)}
               className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
@@ -249,19 +250,19 @@ export default function DashboardPage() {
               const BadgeIcon = badgeIcons[selectedBadge] || Trophy;
               return (
                 <>
-                  <div className="w-24 h-24 bg-gradient-to-br from-[#fdfaf6] via-[#d5b080] to-[#b38a53] rounded-full mx-auto flex items-center justify-center shadow-lg mb-6 border-4 border-[#111812]">
-                    <div className="absolute inset-1 rounded-full border border-[#111812]/20 m-2 pointer-events-none"></div>
-                    <BadgeIcon size={40} className="text-[#111812]" />
+                  <div className="w-24 h-24 bg-gradient-to-br from-[#F8F5F0] via-[#C79A5B] to-[#b38a53] rounded-full mx-auto flex items-center justify-center shadow-lg mb-6 border-4 border-[#12382F]">
+                    <div className="absolute inset-1 rounded-full border border-[#12382F]/20 m-2 pointer-events-none"></div>
+                    <BadgeIcon size={40} className="text-[#12382F]" />
                   </div>
                   
                   <h2 className="text-2xl font-serif font-bold text-white mb-2">
                     {badgeNames[selectedBadge]}
                   </h2>
-                  <p className="text-[#c69b5c] text-sm uppercase tracking-widest font-bold mb-6">
+                  <p className="text-[#C79A5B] text-sm uppercase tracking-widest font-bold mb-6">
                     {selectedBadge === "talmid" ? "Jornada completa" : getStage(selectedBadge)?.title}
                   </p>
                   
-                  <div className="text-[#eaddc5]/80 text-[15px] leading-relaxed text-left border-t border-[#c69b5c]/20 pt-6">
+                  <div className="text-[#E9DFCE]/80 text-[15px] leading-relaxed text-left border-t border-[#C79A5B]/20 pt-6">
                     {badgeContents[selectedBadge]}
                   </div>
                   

@@ -76,7 +76,7 @@ export default function ReportPage() {
       const canvas = await html2canvas(reportRef.current, {
         scale: 2, // Higher resolution
         useCORS: true,
-        backgroundColor: "#0a0f0a"
+        backgroundColor: "#0C2D26"
       });
       
       const imgData = canvas.toDataURL("image/png");
@@ -92,7 +92,7 @@ export default function ReportPage() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Relatorio_Talmidim_${userData.name.replace(/\s+/g, '_')}.pdf`);
+      pdf.save(`Relatorio_ROTA29_${userData.name.replace(/\s+/g, '_')}.pdf`);
     } catch (err) {
       console.error("Erro ao gerar PDF:", err);
       alert("Houve um erro ao gerar o PDF.");
@@ -103,8 +103,8 @@ export default function ReportPage() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-[#0a0f0a] flex justify-center items-center">
-        <div className="w-8 h-8 border-4 border-[#eaddc5]/30 border-t-[#c69b5c] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#0C2D26] flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-[#E9DFCE]/30 border-t-[#C79A5B] rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -112,11 +112,11 @@ export default function ReportPage() {
   return (
     <div className="min-h-screen bg-bg-main text-text-main font-sans pb-24">
       {/* Header Mobile UI */}
-      <div className="bg-[#111812] text-white pt-6 pb-4 px-6 sticky top-0 z-20 shadow-lg flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-[#c69b5c] p-2 -ml-2">
+      <div className="bg-[#12382F] text-white pt-6 pb-4 px-6 sticky top-0 z-20 shadow-lg flex items-center justify-between">
+        <button onClick={() => router.back()} className="text-[#C79A5B] p-2 -ml-2">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-[18px] font-serif font-bold text-[#eaddc5]">Exportar Relatório</h1>
+        <h1 className="text-[18px] font-serif font-bold text-[#E9DFCE]">Exportar Relatório</h1>
         <div className="w-8"></div>
       </div>
 
@@ -128,10 +128,10 @@ export default function ReportPage() {
         <button
           onClick={generatePDF}
           disabled={generating}
-          className="w-full bg-gradient-to-r from-[#d5b080] to-[#b38a53] text-[#111812] py-4 rounded-[16px] font-bold shadow-[0_10px_25px_rgba(198,155,92,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-[#C79A5B] to-[#b38a53] text-[#12382F] py-4 rounded-[16px] font-bold shadow-[0_10px_25px_rgba(198,155,92,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
           {generating ? (
-            <div className="w-5 h-5 border-2 border-[#111812]/30 border-t-[#111812] rounded-full animate-spin"></div>
+            <div className="w-5 h-5 border-2 border-[#12382F]/30 border-t-[#12382F] rounded-full animate-spin"></div>
           ) : (
             <Download size={20} />
           )}
@@ -143,7 +143,7 @@ export default function ReportPage() {
         {/* DOCUMENTO PDF OCULTO/VISÍVEL (Estilo Premium) */}
         <div 
           ref={reportRef} 
-          className="w-[800px] bg-[#0a0f0a] text-[#eaddc5] p-12 relative overflow-hidden"
+          className="w-[800px] bg-[#0C2D26] text-[#E9DFCE] p-12 relative overflow-hidden"
           style={{ 
             boxShadow: '0 0 40px rgba(0,0,0,0.5)',
             transform: 'scale(0.45)', // Visually scale it down for mobile preview
@@ -152,23 +152,23 @@ export default function ReportPage() {
           }}
         >
           {/* Fundo Decorativo */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#c69b5c] rounded-full blur-[150px] opacity-10"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#c69b5c] rounded-full blur-[150px] opacity-10"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#C79A5B] rounded-full blur-[150px] opacity-10"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#C79A5B] rounded-full blur-[150px] opacity-10"></div>
 
           {/* Header do Relatório */}
-          <div className="border-b-2 border-[#c69b5c]/30 pb-8 mb-10 flex justify-between items-end">
+          <div className="border-b-2 border-[#C79A5B]/30 pb-8 mb-10 flex justify-between items-end">
             <div>
               <h1 className="text-[48px] font-serif font-black text-white leading-none tracking-tight mb-2">
-                Relatório Talmidim
+                Relatório ROTA29
               </h1>
-              <p className="text-[18px] text-[#c69c6d] uppercase tracking-widest font-bold">
-                Jornada Urbana
+              <p className="text-[18px] text-[#C79A5B] uppercase tracking-widest font-bold">
+                Discipulado no cotidiano
               </p>
             </div>
             <div className="text-right">
               <p className="text-[16px] text-white/70 mb-1">Discípulo</p>
               <p className="text-[24px] font-bold text-white">{userData.name}</p>
-              <p className="text-[14px] text-[#c69b5c] mt-2">Data: {userData.date}</p>
+              <p className="text-[14px] text-[#C79A5B] mt-2">Data: {userData.date}</p>
             </div>
           </div>
 
@@ -177,10 +177,10 @@ export default function ReportPage() {
             {/* Coluna 1 */}
             <div>
               {/* Radar Result */}
-              <div className="bg-[#111812] border border-[#2a302a] rounded-[24px] p-8 mb-8">
+              <div className="bg-[#12382F] border border-[#2a302a] rounded-[24px] p-8 mb-8">
                 <div className="flex items-center gap-3 mb-6 border-b border-[#2a302a] pb-4">
-                  <div className="w-10 h-10 bg-[#c69b5c]/10 rounded-full flex items-center justify-center">
-                    <FileText className="text-[#c69b5c]" size={20} />
+                  <div className="w-10 h-10 bg-[#C79A5B]/10 rounded-full flex items-center justify-center">
+                    <FileText className="text-[#C79A5B]" size={20} />
                   </div>
                   <h2 className="text-[20px] font-bold text-white uppercase tracking-wider">Radar Discipular</h2>
                 </div>
@@ -194,11 +194,11 @@ export default function ReportPage() {
                         <div key={area.id}>
                           <div className="flex justify-between items-end mb-2">
                             <span className="text-[16px] font-medium text-white/90">{area.name}</span>
-                            <span className="text-[14px] font-bold text-[#c69b5c]">{score}/15</span>
+                            <span className="text-[14px] font-bold text-[#C79A5B]">{score}/15</span>
                           </div>
-                          <div className="w-full bg-[#0a0f0a] h-2 rounded-full overflow-hidden border border-[#2a302a]">
+                          <div className="w-full bg-[#0C2D26] h-2 rounded-full overflow-hidden border border-[#2a302a]">
                             <div 
-                              className="bg-gradient-to-r from-[#d5b080] to-[#c69b5c] h-full rounded-full"
+                              className="bg-gradient-to-r from-[#C79A5B] to-[#C79A5B] h-full rounded-full"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -215,17 +215,17 @@ export default function ReportPage() {
             {/* Coluna 2 */}
             <div>
               {/* PDD Result */}
-              <div className="bg-[#111812] border border-[#2a302a] rounded-[24px] p-8 mb-8">
+              <div className="bg-[#12382F] border border-[#2a302a] rounded-[24px] p-8 mb-8">
                 <div className="flex items-center gap-3 mb-6 border-b border-[#2a302a] pb-4">
-                  <div className="w-10 h-10 bg-[#c69b5c]/10 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="text-[#c69b5c]" size={20} />
+                  <div className="w-10 h-10 bg-[#C79A5B]/10 rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="text-[#C79A5B]" size={20} />
                   </div>
                   <h2 className="text-[20px] font-bold text-white uppercase tracking-wider">Plano de Discipulado</h2>
                   <button
                     type="button"
                     onClick={() => router.push("/pdd/intro")}
                     aria-label="O que é o PDD?"
-                    className="text-[#c69b5c]/70 active:scale-90 transition-transform ml-auto"
+                    className="text-[#C79A5B]/70 active:scale-90 transition-transform ml-auto"
                   >
                     <Info size={16} />
                   </button>
@@ -235,8 +235,8 @@ export default function ReportPage() {
                   <ul className="space-y-4">
                     {userData.pdd.map((person: string, i: number) => (
                       person ? (
-                        <li key={i} className="flex items-center gap-4 bg-[#0a0f0a] p-4 rounded-xl border border-[#2a302a]">
-                          <div className="w-8 h-8 rounded-full bg-[#c69b5c]/20 text-[#c69b5c] flex items-center justify-center font-bold text-[14px]">
+                        <li key={i} className="flex items-center gap-4 bg-[#0C2D26] p-4 rounded-xl border border-[#2a302a]">
+                          <div className="w-8 h-8 rounded-full bg-[#C79A5B]/20 text-[#C79A5B] flex items-center justify-center font-bold text-[14px]">
                             {i + 1}
                           </div>
                           <span className="text-[18px] font-medium text-white">{person}</span>
@@ -251,11 +251,11 @@ export default function ReportPage() {
 
               {/* Assinatura */}
               <div className="mt-16 pt-8 border-t border-[#2a302a] text-center">
-                <div className="w-64 h-px bg-gradient-to-r from-transparent via-[#c69b5c] to-transparent mx-auto mb-4"></div>
+                <div className="w-64 h-px bg-gradient-to-r from-transparent via-[#C79A5B] to-transparent mx-auto mb-4"></div>
                 <p className="text-[16px] text-white/70 italic">
                   "Sede meus imitadores, como também eu de Cristo."
                 </p>
-                <p className="text-[14px] text-[#c69b5c] mt-2 font-bold uppercase tracking-widest">
+                <p className="text-[14px] text-[#C79A5B] mt-2 font-bold uppercase tracking-widest">
                   1 Coríntios 11:1
                 </p>
               </div>

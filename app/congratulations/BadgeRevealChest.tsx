@@ -26,7 +26,7 @@ const badgeRevealStyles = `
     position: absolute;
     inset: -8px;
     border-radius: 9999px;
-    border: 2px solid var(--ring-color, #d5b080);
+    border: 2px solid var(--ring-color, #C79A5B);
     animation: chestBurstRing 1.1s cubic-bezier(0.15, 1, 0.4, 1) forwards;
     pointer-events: none;
   }
@@ -98,7 +98,7 @@ const badgeRevealStyles = `
     100% { background-position: 200% center; }
   }
   .chest-shimmer-text {
-    background: linear-gradient(90deg, #b58b54 0%, #fdf0d5 45%, #b58b54 100%);
+    background: linear-gradient(90deg, #C79A5B 0%, #F8F5F0 45%, #C79A5B 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -107,8 +107,8 @@ const badgeRevealStyles = `
   }
 `;
 
-const SPARK_COLORS = ["#eaddc5", "#fdf0d5", "#d5b080", "#c69b5c"];
-const CONFETTI_COLORS = ["#d5b080", "#eaddc5", "#b58b54", "#fdf0d5"];
+const SPARK_COLORS = ["#E9DFCE", "#F8F5F0", "#C79A5B", "#C79A5B"];
+const CONFETTI_COLORS = ["#C79A5B", "#E9DFCE", "#C79A5B", "#F8F5F0"];
 
 type Props = {
   BadgeIcon: ElementType<{ size?: number; className?: string }>;
@@ -161,15 +161,15 @@ export default function BadgeRevealChest({ BadgeIcon, badgeName, theme = "light"
             <>
               <span
                 className="chest-burst-ring"
-                style={{ ["--ring-color" as string]: isDark ? "#c69b5c" : "#d5b080" } as CSSProperties}
+                style={{ ["--ring-color" as string]: isDark ? "#C79A5B" : "#C79A5B" } as CSSProperties}
               />
               <span
                 className="chest-burst-ring chest-burst-ring-2"
-                style={{ ["--ring-color" as string]: "#eaddc5" } as CSSProperties}
+                style={{ ["--ring-color" as string]: "#E9DFCE" } as CSSProperties}
               />
               <span
                 className="chest-burst-ring chest-burst-ring-3"
-                style={{ ["--ring-color" as string]: isDark ? "#c69b5c" : "#b38a53" } as CSSProperties}
+                style={{ ["--ring-color" as string]: isDark ? "#C79A5B" : "#b38a53" } as CSSProperties}
               />
 
               {Array.from({ length: 22 }).map((_, i) => (
@@ -209,34 +209,34 @@ export default function BadgeRevealChest({ BadgeIcon, badgeName, theme = "light"
           <div
             className={`absolute inset-0 rounded-[22px] flex items-center justify-center transition-all duration-500 ${
               isDark
-                ? "bg-[#111812] border border-[#c69b5c]/30 shadow-[0_0_60px_rgba(198,155,92,0.2)]"
-                : "border border-[#d5b080]/40 bg-gradient-to-br from-[#f6ecd8] to-[#fdfaf6] shadow-[0_15px_30px_rgba(213,176,128,0.2)]"
+                ? "bg-[#12382F] border border-[#C79A5B]/30 shadow-[0_0_60px_rgba(198,155,92,0.2)]"
+                : "border border-[#C79A5B]/40 bg-gradient-to-br from-[#f6ecd8] to-[#F8F5F0] shadow-[0_15px_30px_rgba(213,176,128,0.2)]"
             } ${
               chestOpened
                 ? "opacity-0 scale-75 rotate-6 pointer-events-none"
                 : "opacity-100 scale-100 animate-pulse"
             }`}
           >
-            <Lock size={32} className={isDark ? "text-[#c69b5c]" : "text-[#b58b54]"} />
+            <Lock size={32} className={isDark ? "text-[#C79A5B]" : "text-[#C79A5B]"} />
           </div>
 
           {/* Insígnia revelada — pop elástico + brilho pulsante contínuo */}
           <div
             className={`absolute inset-0 rounded-full flex items-center justify-center ${
               isDark
-                ? "bg-[#111812] border border-[#c69b5c]/30"
-                : "bg-gradient-to-br from-[#fdfaf6] via-[#d5b080] to-[#b38a53]"
+                ? "bg-[#12382F] border border-[#C79A5B]/30"
+                : "bg-gradient-to-br from-[#F8F5F0] via-[#C79A5B] to-[#b38a53]"
             } ${chestOpened ? "chest-badge-reveal" : "opacity-0 scale-0 pointer-events-none"}`}
             style={chestOpened ? { animationDelay: "0.28s, 1.13s" } : undefined}
           >
-            <BadgeIcon size={46} className={isDark ? "text-[#c69b5c]" : "text-[#111812]"} />
+            <BadgeIcon size={46} className={isDark ? "text-[#C79A5B]" : "text-[#12382F]"} />
           </div>
         </button>
       </div>
 
       <p
         className={`text-center text-[13px] font-bold uppercase tracking-widest mb-6 transition-opacity duration-500 ${
-          chestOpened ? "chest-shimmer-text" : `${isDark ? "text-[#c69b5c]" : "text-[#b58b54]"} animate-pulse`
+          chestOpened ? "chest-shimmer-text" : `${isDark ? "text-[#C79A5B]" : "text-[#C79A5B]"} animate-pulse`
         }`}
       >
         {chestOpened ? badgeName : "Toque para revelar sua insígnia"}

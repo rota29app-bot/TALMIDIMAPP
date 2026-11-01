@@ -1,7 +1,7 @@
 // Motor de diagnóstico do Radar Discipular.
 //
 // Antes disso o app só mostrava a pontuação crua de cada área num gráfico.
-// O livro do Talmidim (seção "RADAR DISCIPULAR" -> "COMBINAÇÕES") ensina que
+// O livro do ROTA29 (seção "RADAR DISCIPULAR" -> "COMBINAÇÕES") ensina que
 // o diagnóstico real não olha as áreas isoladas — olha como elas se
 // relacionam entre si. As regras abaixo são adaptadas diretamente dos
 // exemplos que o Nilton já escreveu no livro, não são texto genérico.
@@ -84,12 +84,12 @@ export function generateDiagnostico(scores: Record<string, number>): {
   }
 
   // Regra 5 — Intimidade com Deus como a mais fraca de todas: alerta de
-  // fundação, já que o Talmidim começa justamente por essa estação.
+  // fundação, já que o ROTA29 começa justamente por essa estação.
   if (ranked[ranked.length - 1].id === "intimidade") {
     combinacoes.push({
       titulo: "A base pede atenção",
       texto:
-        "Intimidade com Deus é sua área mais frágil agora. Não é por acaso que o Talmidim começa exatamente por aqui: é do cultivo de um relacionamento profundo com Deus que nasce a autoridade espiritual para viver bem todas as outras áreas. Vale começar a jornada com atenção redobrada nesta estação.",
+        "Intimidade com Deus é sua área mais frágil agora. Não é por acaso que o ROTA29 começa exatamente por aqui: é do cultivo de um relacionamento profundo com Deus que nasce a autoridade espiritual para viver bem todas as outras áreas. Vale começar a jornada com atenção redobrada nesta estação.",
     });
   }
 
