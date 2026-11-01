@@ -36,6 +36,7 @@ const LeafIcon = () => (
 import { createClient } from "../../utils/supabase/client";
 import { isAdminTestMode } from "../../utils/admin-test-mode";
 import { isPastorJourneyMode } from "../../utils/pastor-journey-mode";
+import { getInvitationContext } from "../../utils/invitation-context";
 
 const WELCOME_POSTERS_READY = true; // Ativar apenas após publicar as DUAS artes originais.
 
@@ -64,6 +65,8 @@ export default function StartPage() {
     let active = true;
     void Promise.resolve().then(() => { if (active) setMounted(true); });
     const load = async () => {
+      // Guarda a identificação da igreja antes do login Google (inclusive no iPhone).
+      const invitation = getInvitationContext();
       const db = createClient();
       const { data: { user }, error } = await db.auth.getUser();
       if (!active) return;
@@ -78,6 +81,10 @@ export default function StartPage() {
         return;
       }
       const params = new URLSearchParams(window.location.search);
+      if (invitation !== null) {
+        router.replace("/igreja?convite=" + encodeURIComponent(invitation));
+        return;
+      }
       // Primeiro identifique a igreja e o pastor, sem exigir que a pessoa
       // escolha gênero, assista vídeos ou conclua etapas pessoais antes.
       const { data: access, error: accessError } = await db.rpc("pilot_my_church");
@@ -87,13 +94,7 @@ export default function StartPage() {
         setStep(3);
         return;
       }
-      const invite = params.get("convite")?.trim().toUpperCase() || "";
-      if (params.get("after_auth") === "1" && !invite) window.history.replaceState(null, "", "/start");
-      // Um convite institucional tem prioridade sobre a escolha genérica de perfil.
-      if (/^[A-F0-9]{16}$/.test(invite)) {
-        router.replace("/igreja?convite=" + encodeURIComponent(invite));
-        return;
-      }
+      if (params.get("after_auth") === "1") window.history.replaceState(null, "", "/start");
       const testingAsAdmin = access.is_admin && isAdminTestMode(user.id);
       const usingPastorJourney = access.role === "pastor"
         && access.pilot === true
@@ -135,11 +136,9 @@ export default function StartPage() {
   const handleGoogleSignIn = async () => {
     setErrorMsg("");
     setLoading(true);
-    const invite = typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("convite")?.trim().toUpperCase()
-      : null;
+    const invite = getInvitationContext();
     const redirect = typeof window !== "undefined" ? new URL("/auth/callback", window.location.origin) : null;
-    if (redirect && invite && /^[A-F0-9]{16}$/.test(invite)) redirect.searchParams.set("convite", invite);
+    if (redirect && invite !== null) redirect.searchParams.set("convite", invite);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirect?.toString() }
