@@ -28,6 +28,8 @@ export default function RegistroIgreja(){
  const [code,setCode]=useState("");
  const [invitedCode,setInvitedCode]=useState("");
  const formRef=useRef<HTMLFormElement|null>(null);
+ const submitLockRef=useRef(false);
+ const submittedRef=useRef(false);
  useEffect(()=>{
   if(!mode)return;
   const handle=window.setTimeout(()=>{
@@ -57,10 +59,8 @@ export default function RegistroIgreja(){
   setLoading(false);
  },[router]);
  useEffect(()=>{void load();},[load]);
- const register=async(ev:FormEvent<HTMLFormElement>)=>{
-  ev.preventDefault();
-  if(saving)return;
-  const form=ev.currentTarget;
+ const register=async(form:HTMLFormElement)=>{
+  if(saving||submitLockRef.current||submittedRef.current)return;
   const data=new FormData(form);
   const values={
    nome:String(data.get("nome")||"").trim(),
@@ -96,26 +96,39 @@ export default function RegistroIgreja(){
    }
    return;
   }
+  submitLockRef.current=true;
   setSaving(true);
   try{
-   const {error:e}=await createClient().rpc("pilot_register_church",{
-    p_nome:values.nome,
-    p_cidade:values.cidade,
-    p_estado:values.estado,
-    p_pastor:values.pastor,
-    p_contato:values.contato,
-    p_convidados:Number(values.convidados),
-    p_aceite:values.aceite
+   // POST para a própria origem evita restrições do Safari/WhatsApp ao acesso direto ao Supabase.
+   const response=await fetch("/api/igreja/cadastro",{
+    method:"POST",
+    credentials:"same-origin",
+    cache:"no-store",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({...values,convidados:Number(values.convidados)})
    });
-   if(e){setError(e.message);return;}
+   let result:{ok?:boolean;message?:string};
+   try{
+    result=await response.json() as {ok?:boolean;message?:string};
+   }catch{
+    setError("O servidor retornou uma resposta inesperada. Abra o ROTA29 no Safari e tente novamente.");
+    return;
+   }
+   if(!response.ok||!result.ok){
+    setError(result.message||"O cadastro não foi concluído. Tente novamente.");
+    return;
+   }
+   submittedRef.current=true;
    setNotice("Cadastro recebido. A coordenação precisa aprovar sua igreja antes de liberar convites.");
+   setMode(null);
    try{await load();}catch{
     setNotice("Cadastro enviado. Não foi possível atualizar a tela; reabra Minha igreja para conferir a aprovação.");
    }
    window.scrollTo({top:0,behavior:"smooth"});
   }catch{
-   setError("Não foi possível enviar o cadastro. Verifique sua conexão e tente novamente. No iPhone, prefira abrir o link diretamente no Safari em vez do navegador do WhatsApp.");
+   setError("O envio não chegou ao servidor. Verifique sua conexão e abra o ROTA29 diretamente no Safari, fora do WhatsApp.");
   }finally{
+   submitLockRef.current=false;
    setSaving(false);
   }
  };
@@ -176,7 +189,7 @@ export default function RegistroIgreja(){
      <button type="button" aria-pressed={mode==="pastor"} onClick={()=>chooseMode("pastor")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="pastor"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Building2/><strong className="block">Cadastrar minha igreja</strong><span className="text-xs">Somente para responsáveis por uma nova igreja</span></button>
      {church?.role!=="pastor"&&<button type="button" aria-pressed={mode==="membro"} onClick={()=>chooseMode("membro")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="membro"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Users/><strong className="block">Tenho convite de uma igreja</strong><span className="text-xs">Inclusive pastores convidados como participantes</span></button>}
     </div>
-    {mode==="pastor"&&<form ref={formRef} noValidate onSubmit={register} onInput={ev=>{const target=ev.target;if(target instanceof HTMLInputElement&&target.name===fieldError?.field){setFieldError(null);setError("");}}} id="rota29-form-pastor" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
+    {mode==="pastor"&&<form ref={formRef} noValidate onSubmit={ev=>{ev.preventDefault();void register(ev.currentTarget);}} onInput={ev=>{const target=ev.target;if(target instanceof HTMLInputElement&&target.name===fieldError?.field){setFieldError(null);setError("");}}} id="rota29-form-pastor" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
      <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Cadastrar minha igreja</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
      <p className="text-sm">Preencha os dados abaixo e toque em <strong>Enviar cadastro da igreja</strong>. Só depois disso a coordenação receberá sua solicitação.</p>
      <label className="block text-sm">Nome oficial<input name="nome" className={input} minLength={4} maxLength={130} required aria-invalid={fieldError?.field==="nome"}/>{fieldError?.field==="nome"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
@@ -186,7 +199,8 @@ export default function RegistroIgreja(){
      <label className="block text-sm">Participantes previstos (até 10 além do pastor)<input name="convidados" type="number" min={0} max={10} required inputMode="numeric" className={input} aria-invalid={fieldError?.field==="convidados"}/>{fieldError?.field==="convidados"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
      <label className="flex gap-2 text-sm"><input type="checkbox" name="aceite" required aria-invalid={fieldError?.field==="aceite"}/>Confirmo a autorização institucional e o aviso de tratamento dos dados do piloto.</label>
      {error&&<p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</p>}
-     <button type="submit" disabled={saving} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Enviar cadastro da igreja"}</button>
+     <button type="button" onClick={()=>{if(formRef.current)void register(formRef.current);}} disabled={saving} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Enviar cadastro da igreja"}</button>
+     <p className="text-xs text-[#547266]">Cadastro compatível com iPhone · versão 2. Se não concluir, a mensagem acima indicará o motivo.</p>
     </form>}
     {mode==="membro"&&<form ref={formRef} onSubmit={requestJoin} id="rota29-form-membro" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
      <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Código do pastor</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
