@@ -4,6 +4,7 @@ import {useRouter} from "next/navigation";
 import {createClient} from "../../utils/supabase/client";
 import InvitationJoin from "./InvitationJoin";
 import InvitationShare from "./InvitationShare";
+import {getInvitationContext} from "../../utils/invitation-context";
 import {Building2,Copy,Users,ShieldCheck,Clock3} from "lucide-react";
 
 type Church={
@@ -43,8 +44,8 @@ export default function RegistroIgreja(){
  };
  const load=useCallback(async()=>{
   const db=createClient();
-  const incoming=new URLSearchParams(window.location.search).get("convite");
-  if(incoming!==null)setInvitedCode(incoming.trim().toUpperCase()||"INVALID");
+  const incoming=getInvitationContext();
+  if(incoming!==null)setInvitedCode(incoming);
   const {data:{user}}=await db.auth.getUser();
   if(!user){router.replace("/start"+(incoming!==null?"?convite="+encodeURIComponent(incoming):""));return;}
   setCurrentEmail(user.email||"");
@@ -61,6 +62,11 @@ export default function RegistroIgreja(){
  useEffect(()=>{void load();},[load]);
  const register=async(form:HTMLFormElement)=>{
   if(saving||submitLockRef.current||submittedRef.current)return;
+  if(getInvitationContext()!==null){
+   setMode(null);
+   setError("Este é um convite de participação. Não é permitido criar outra igreja por este link.");
+   return;
+  }
   const data=new FormData(form);
   const values={
    nome:String(data.get("nome")||"").trim(),
@@ -69,7 +75,8 @@ export default function RegistroIgreja(){
    pastor:String(data.get("pastor")||"").trim(),
    contato:String(data.get("contato")||"").trim(),
    convidados:String(data.get("convidados")||"").trim(),
-   aceite:data.get("aceite")==="on"
+   aceite:data.get("aceite")==="on",
+   novaIgreja:data.get("novaIgreja")==="on"
   };
   setError("");setNotice("");setFieldError(null);
   // Validação explícita: o Safari/iOS pode impedir o submit sem mostrar qual campo falta.
@@ -80,7 +87,8 @@ export default function RegistroIgreja(){
    ["pastor","Informe o nome do pastor responsável.",values.pastor.length>0],
    ["contato","Informe um e-mail ou telefone para contato com a igreja.",values.contato.length>0],
    ["convidados","Informe a quantidade prevista de participantes, de 0 a 10.",/^\d+$/.test(values.convidados)&&Number(values.convidados)<=10],
-   ["aceite","Confirme a autorização institucional para enviar o cadastro.",values.aceite]
+   ["aceite","Confirme a autorização institucional para enviar o cadastro.",values.aceite],
+   ["novaIgreja","Confirme que é uma igreja realmente nova. Se recebeu convite, entre pela opção de participante.",values.novaIgreja]
   ];
   const invalid=checks.find(([, ,valid])=>!valid);
   if(invalid){
@@ -183,21 +191,23 @@ export default function RegistroIgreja(){
     <button type="button" className="w-full rounded-xl border p-3 font-bold" onClick={()=>void load()}>Verificar aprovação</button>
    </section>:
    <section className="space-y-3">
+    <p className="rounded-xl bg-white border border-[#C79A5B]/50 p-4 text-sm"><strong>Recebeu um convite de uma igreja?</strong> Escolha <strong>Tenho convite de uma igreja</strong>. Nunca cadastre novamente uma igreja existente.</p>
     {church?.role==="pastor"&&<p className="rounded-xl bg-white border border-[#C79A5B]/50 p-4 text-sm">Você já usou uma conta pastoral anteriormente. Para participar do novo piloto, cadastre sua igreja aqui. Sua conta Google e seu histórico permanecem preservados.</p>}
     <p className="text-sm font-semibold">Qual é a sua participação?</p>
     <div className={church?.role==="pastor"?"grid grid-cols-1 gap-3":"grid grid-cols-2 gap-3"}>
-     <button type="button" aria-pressed={mode==="pastor"} onClick={()=>chooseMode("pastor")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="pastor"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Building2/><strong className="block">Cadastrar minha igreja</strong><span className="text-xs">Somente para responsáveis por uma nova igreja</span></button>
+     <button type="button" aria-pressed={mode==="pastor"} onClick={()=>chooseMode("pastor")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="pastor"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Building2/><strong className="block">Cadastrar NOVA igreja</strong><span className="text-xs">Somente para responsáveis por uma instituição ainda não cadastrada</span></button>
      {church?.role!=="pastor"&&<button type="button" aria-pressed={mode==="membro"} onClick={()=>chooseMode("membro")} className={`rounded-2xl bg-white border-2 p-4 text-left space-y-2 ${mode==="membro"?"border-[#0F3D33] shadow-md":"border-[#C79A5B]/40"}`}><Users/><strong className="block">Tenho convite de uma igreja</strong><span className="text-xs">Inclusive pastores convidados como participantes</span></button>}
     </div>
     {mode==="pastor"&&<form ref={formRef} noValidate onSubmit={ev=>{ev.preventDefault();void register(ev.currentTarget);}} onInput={ev=>{const target=ev.target;if(target instanceof HTMLInputElement&&target.name===fieldError?.field){setFieldError(null);setError("");}}} id="rota29-form-pastor" className="bg-white rounded-2xl border-2 border-[#0F3D33] p-5 space-y-4 scroll-mt-4 shadow-lg">
-     <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Cadastrar minha igreja</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
-     <p className="text-sm">Preencha os dados abaixo e toque em <strong>Enviar cadastro da igreja</strong>. Só depois disso a coordenação receberá sua solicitação.</p>
+     <div className="flex items-center justify-between gap-2"><h2 className="text-xl font-bold">Cadastrar NOVA igreja</h2><button type="button" onClick={()=>setMode(null)} className="text-sm underline">Fechar</button></div>
+     <p className="text-sm">Use este formulário somente se a igreja ainda não existe no ROTA29. Se recebeu um convite para participar de uma igreja existente, feche esta tela e selecione <strong>Tenho convite de uma igreja</strong>.</p>
      <label className="block text-sm">Nome oficial<input name="nome" className={input} minLength={4} maxLength={130} required aria-invalid={fieldError?.field==="nome"}/>{fieldError?.field==="nome"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
      <div className="grid grid-cols-[1fr_80px] gap-2"><label className="block text-sm">Cidade<input name="cidade" className={input} maxLength={90} required aria-invalid={fieldError?.field==="cidade"}/>{fieldError?.field==="cidade"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label><label className="block text-sm">UF<input name="estado" className={input} pattern="[A-Za-z]{2}" minLength={2} maxLength={2} required autoCapitalize="characters" aria-invalid={fieldError?.field==="estado"}/>{fieldError?.field==="estado"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label></div>
      <label className="block text-sm">Pastor responsável<input name="pastor" className={input} maxLength={130} required aria-invalid={fieldError?.field==="pastor"}/>{fieldError?.field==="pastor"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
      <label className="block text-sm">E-mail ou telefone da igreja<input name="contato" className={input} maxLength={150} required aria-invalid={fieldError?.field==="contato"}/>{fieldError?.field==="contato"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
      <label className="block text-sm">Participantes previstos (até 10 além do pastor)<input name="convidados" type="number" min={0} max={10} required inputMode="numeric" className={input} aria-invalid={fieldError?.field==="convidados"}/>{fieldError?.field==="convidados"&&<span className="block text-xs text-red-700 mt-1">{fieldError.message}</span>}</label>
      <label className="flex gap-2 text-sm"><input type="checkbox" name="aceite" required aria-invalid={fieldError?.field==="aceite"}/>Confirmo a autorização institucional e o aviso de tratamento dos dados do piloto.</label>
+     <label className="flex gap-2 text-sm rounded-xl border border-[#C79A5B]/60 bg-[#FFF8EB] p-3"><input type="checkbox" name="novaIgreja" aria-invalid={fieldError?.field==="novaIgreja"}/>Confirmo que a minha igreja ainda não está cadastrada neste sistema. Não estou entrando como participante de uma igreja existente.</label>
      {error&&<p role="alert" className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</p>}
      <button type="button" onClick={()=>{if(formRef.current)void register(formRef.current);}} disabled={saving} className="w-full rounded-xl bg-[#0F3D33] text-white p-4 font-bold disabled:opacity-60">{saving?"Enviando…":"Enviar cadastro da igreja"}</button>
      <p className="text-xs text-[#547266]">Cadastro compatível com iPhone · versão 2. Se não concluir, a mensagem acima indicará o motivo.</p>
