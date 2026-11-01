@@ -13,9 +13,12 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/start?auth_error=exchange_failed", origin));
   }
   // Preserva o convite específico durante o retorno do Google.
-  const invite = searchParams.get("convite")?.trim().toUpperCase();
+  const invite = searchParams.get("convite");
   const target = new URL("/start", origin);
   target.searchParams.set("after_auth", "1");
-  if (invite && /^[A-F0-9]{16}$/.test(invite)) target.searchParams.set("convite", invite);
+  if (invite !== null) {
+    const normalized = invite.trim().toUpperCase();
+    target.searchParams.set("convite", /^[A-F0-9]{16}$/.test(normalized) ? normalized : "INVALID");
+  }
   return NextResponse.redirect(target);
 }
